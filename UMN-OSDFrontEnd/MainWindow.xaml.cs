@@ -229,6 +229,24 @@ namespace UMN_OSDFrontEnd {
             }
         }
 
+        private void CompleteButtonHandler( object sender, RoutedEventArgs e ) {
+            if(!Development) {
+                Type EnvironmentType = Type.GetTypeFromProgID( "Microsoft.SMS.TSEnvironment" );
+                dynamic TSEnvironment = Activator.CreateInstance( EnvironmentType );
+
+                // Set the computer name in the task sequence
+                TSEnvironment.Value["OSDComputerName"] = TextBoxComputerName.Text;
+            } else {
+                if(!InWinPE) {
+
+                }
+            }
+
+            FormEntryComplete = true;
+
+            Close();
+        }
+
         /// <summary>
         /// 
         /// </summary>

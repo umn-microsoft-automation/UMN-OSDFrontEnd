@@ -76,5 +76,19 @@
                 <Button Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5,5,5,5" Content="Next &gt;&gt;" Width="125" Click="NextButtonHandler" IsEnabled="False" x:Name="ButtonComputerNameNext" />
             </Grid>
         </TabItem>
+        <TabItem x:Name="TabFinish" Header="Finish">
+            <Grid Margin="0,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <DockPanel Grid.Row="0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                    <TextBlock HorizontalAlignment="Left" Margin="5,5,5,5" TextWrapping="Wrap" VerticalAlignment="Top">
+                        Review all the information entered prior to hitting the complete button.  This is your last opportunity to verify and correct anything prior to the task sequence fully starting.  If you need to exit this task sequence use the X in the upper right hand corner and this will trigger a task sequence failure.
+                    </TextBlock>
+                </DockPanel>
+                <Button Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5,5,5,5" Content="Complete" Width="125" Click="CompleteButtonHandler" IsEnabled="True" x:Name="ButtonFinish" />
+            </Grid>
+        </TabItem>
     </TabControl>
 </Controls:MetroWindow>

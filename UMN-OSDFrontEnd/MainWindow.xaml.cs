@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using MahApps.Metro.Controls;
 using Mono.Options;
 using Newtonsoft.Json;
@@ -73,6 +74,15 @@ namespace UMN_OSDFrontEnd {
                     TextBoxComputerName.Text = "UMN";
                 }
             }
+
+            // Use logo file
+            BitmapImage OverlayImage = new BitmapImage();
+            OverlayImage.BeginInit();
+            OverlayImage.UriSource = new Uri( Path.Combine( AppDomain.CurrentDomain.BaseDirectory.ToString(), Settings.LogoSource ) );
+            OverlayImage.EndInit();
+            OverlayLogo.Width = Settings.LogoWidth;
+            OverlayLogo.Height = Settings.LogoHeight;
+            OverlayLogo.Source = OverlayImage;
 
             // Setup all the tabs
             foreach( AppSettingsTab Tab in Settings.Tabs ) {

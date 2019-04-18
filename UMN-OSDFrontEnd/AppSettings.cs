@@ -6,5 +6,8 @@ namespace UMN_OSDFrontEnd {
     /// </summary>
     class AppSettings {
         public List<AppSettingsTab> Tabs { get; set; }
+        public int LogoWidth { get; set; }
+        public int LogoHeight { get; set; }
+        public string LogoSource { get; set; }
     }
 }

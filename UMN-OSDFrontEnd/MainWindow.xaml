@@ -1,0 +1,80 @@
+﻿<Controls:MetroWindow x:Class="UMN_OSDFrontEnd.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:local="clr-namespace:UMN_OSDFrontEnd"
+        xmlns:fa="http://schemas.fontawesome.io/icons/"
+        mc:Ignorable="d"
+        Closing="MetroWindow_Closing"
+        Loaded="MetroWindow_Loaded"
+        Title="MainWindow" Height="500" Width="1000" ResizeMode="NoResize">
+    <TabControl x:Name="TabControlMainWindow" Margin="0,0,2,0" TabStripPlacement="Left" FontFamily="Arial" FontSize="14" FontWeight="Bold" RenderTransformOrigin="0.5,0.5">
+        <TabItem x:Name="TabPreFlight" Header="Pre-Flight">
+            <Grid Margin="0,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <DockPanel Grid.Row="0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                    <GroupBox DockPanel.Dock="Top" Header="Pre-Flight Checks" VerticalAlignment="Top" Margin="5,5,5,5">
+                        <Grid HorizontalAlignment="Left" x:Name="GridPreFlightChecks">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                        </Grid>
+                    </GroupBox>
+                </DockPanel>
+                <Button Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5,5,5,5" Content="Next &gt;&gt;" Width="125" Click="NextButtonHandler" IsEnabled="True" x:Name="ButtonPreFlightNext" />
+            </Grid>
+        </TabItem>
+        <TabItem x:Name="TabComputerName" Header="Computer Name" IsEnabled="False">
+            <Grid Margin="0,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <DockPanel Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <GroupBox DockPanel.Dock="Top" Header="Computer Name" VerticalAlignment="Top" Margin="5,5,5,5">
+                        <Grid HorizontalAlignment="Center">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Label Grid.Row="0" Grid.Column="0" Content="Enter Computer Name:" HorizontalAlignment="Left" Margin="10,10,10,10" VerticalAlignment="Top" />
+                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="TextBoxComputerName" Width="175" HorizontalAlignment="Left" Margin="10,10,10,10" VerticalAlignment="Top" CharacterCasing="Upper" TextChanged="TextBoxComputerName_TextChanged" />
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox DockPanel.Dock="Top" Header="Computer Name Validation" VerticalAlignment="Top" Margin="5,5,5,5">
+                        <Grid HorizontalAlignment="Left" x:Name="GridComputerNameRules">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Label Grid.Column="0" Grid.Row="0" Content="REQ - Length &gt;= 5:" x:Name="LabelRuleGreaterThan" />
+                            <Label Grid.Column="1" Grid.Row="0" Content="False" x:Name="LabelRuleGreaterThanStatus" Foreground="{StaticResource InvalidItemBrush}" />
+                            <Label Grid.Column="0" Grid.Row="1" Content="REQ - Length &lt;= 15:" x:Name="LabelRuleLessThan" />
+                            <Label Grid.Column="1" Grid.Row="1" Content="False" x:Name="LabelRuleLessThanStatus" Foreground="{StaticResource InvalidItemBrush}" />
+                            <Label Grid.Column="0" Grid.Row="2" Content="OPT - Starts with UMN:" x:Name="LabelRuleStartsWith" />
+                            <Label Grid.Column="1" Grid.Row="2" Content="False" x:Name="LabelRuleStartsWithStatus" Foreground="{StaticResource InvalidItemBrush}" />
+                            <Label Grid.Column="0" Grid.Row="3" Content="OPT - Ends with blah:" x:Name="LabelRuleEndsWith" />
+                            <Label Grid.Column="1" Grid.Row="3" Content="False" x:Name="LabelRuleEndsWithStatus" Foreground="{StaticResource InvalidItemBrush}" />
+                        </Grid>
+                    </GroupBox>
+                </DockPanel>
+                <Button Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5,5,5,5" Content="Next &gt;&gt;" Width="125" Click="NextButtonHandler" IsEnabled="False" x:Name="ButtonComputerNameNext" />
+            </Grid>
+        </TabItem>
+    </TabControl>
+</Controls:MetroWindow>

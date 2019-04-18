@@ -1,3 +1,6 @@
+# Project specific excludes:
+# Default app settings
+AppSettings.json
 
 # Created by https://www.gitignore.io/api/csharp,windows,powershell,visualstudio,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=csharp,windows,powershell,visualstudio,visualstudiocode

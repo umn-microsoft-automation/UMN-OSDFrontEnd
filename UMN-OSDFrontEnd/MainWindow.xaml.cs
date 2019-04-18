@@ -244,12 +244,29 @@ namespace UMN_OSDFrontEnd {
                 Type EnvironmentType = Type.GetTypeFromProgID( "Microsoft.SMS.TSEnvironment" );
                 dynamic TSEnvironment = Activator.CreateInstance( EnvironmentType );
 
-                // Set the computer name in the task sequence
-                TSEnvironment.Value["OSDComputerName"] = TextBoxComputerName.Text;
-            } else {
-                if(!InWinPE) {
+                foreach( AppSettingsTab Tab in Settings.Tabs ) {
+                    if(Tab.TabName == "TabComputerName" && Tab.Enabled == true) {
+                        // Here is where we set the computer name based on text input and if that tab is enabled
+                        TSEnvironment.Value["OSDComputerName"] = TextBoxComputerName.Text;
+                    }
 
+                    if(Tab.TabName == "TabBackupOptions" && Tab.Enabled == true) {
+                        // Here is where we enable WIM backups if it's checked and the tab is enabled
+                        if(WIMBackup.IsChecked.Value) {
+                            TSEnvironment.Value["OSDWIMBackup"] = "True";
+                        } else {
+                            TSEnvironment.Value["OSDWIMBackup"] = "False";
+                        }
+
+                        // Here is where we enable USMT backups if it's checked and the tab is enabled
+                        if(USMTBackup.IsChecked.Value) {
+                            TSEnvironment.Value["OSDUSMTBackup"] = "True";
+                        } else {
+                            TSEnvironment.Value["OSDUSMTBackup"] = "False";
+                        }
+                    }
                 }
+            } else {
             }
 
             FormEntryComplete = true;

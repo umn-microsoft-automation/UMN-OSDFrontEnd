@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using MahApps.Metro.Controls;
+using Mono.Options;
 using Newtonsoft.Json;
 
 namespace UMN_OSDFrontEnd {
@@ -19,6 +21,10 @@ namespace UMN_OSDFrontEnd {
         private string ComputerNameEndsWith;
         private bool FormEntryComplete = false;
         private bool PreFlightPass = true;
+
+        // CommandLine Arguments
+        private bool Development = false;
+        private bool InWinPE = false;
 
         // Import the DeleteProfile function from userenv.dll
         [DllImport( "userenv.dll", CharSet = CharSet.Unicode, ExactSpelling = false, SetLastError = true )]
@@ -40,6 +46,35 @@ namespace UMN_OSDFrontEnd {
             string SettingsFile = File.ReadAllText( Path.Combine( AppDomain.CurrentDomain.BaseDirectory.ToString(), "AppSettings.json" ) );
             Settings = JsonConvert.DeserializeObject<AppSettings>( SettingsFile );
 
+            // Parse Application Launch Switches
+            string[] CmdArgs = Environment.GetCommandLineArgs();
+            OptionSet Options = new OptionSet() {
+                { "d|dev|development", v=>Development = true },
+                { "pe|winpe", v=>InWinPE = true }
+            };
+
+            List<string> extra;
+            try {
+                extra = Options.Parse( CmdArgs );
+            } catch(OptionException Ex) {
+                MessageBox.Show( "Error parsing the arguments: " + Ex.Message );
+            }
+
+            // Universal Code (Both PE and Windows)
+            if(Development) {
+                MessageBox.Show( "Development environment selected, will not work in production." );
+            } else {
+                Type EnvironmentType = Type.GetTypeFromProgID( "Microsoft.SMS.TSEnvironment" );
+                dynamic TSEnvironment = Activator.CreateInstance( EnvironmentType );
+
+                if(TSEnvironment.Value["_SMSTSMachineName"] != null) {
+                    TextBoxComputerName.Text = TSEnvironment.Value["_SMSTSMachineName"];
+                } else {
+                    TextBoxComputerName.Text = "UMN";
+                }
+            }
+
+            // Setup all the tabs
             foreach( AppSettingsTab Tab in Settings.Tabs ) {
                 // Handle ComputerName Tab Settings
                 if( Tab.TabName == "TabComputerName" ) {

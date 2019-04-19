@@ -15,5 +15,7 @@ namespace UMN_OSDFrontEnd {
         public string RuleEndsWith { get; set; }
         public bool RuleEndsWithEnabled { get; set; }
         public List<AppSettingsPreFlight> PreFlightChecks { get; set; }
+        public bool DomainUsersOnly { get; set; }
+        public string UserDomainPrefix { get; set; }
     }
 }

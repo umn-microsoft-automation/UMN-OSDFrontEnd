@@ -28,7 +28,7 @@
                             </Grid>
                         </GroupBox>
                     </DockPanel>
-                    <Button Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5,5,5,5" Content="Next &gt;&gt;" Width="125" Click="NextButtonHandler" IsEnabled="True" x:Name="ButtonPreFlightNext" />
+                    <Button Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5,5,5,5" Content="Next &gt;&gt;" Width="125" Click="NextButtonHandler" IsEnabled="True" x:Name="ButtonPreFlightNext" Style="{StaticResource AccentedSquareButtonStyle}" />
                 </Grid>
             </TabItem>
             <TabItem x:Name="TabComputerName" Header="Computer Name" IsEnabled="False">
@@ -74,7 +74,7 @@
                             </Grid>
                         </GroupBox>
                     </DockPanel>
-                    <Button Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5,5,5,5" Content="Next &gt;&gt;" Width="125" Click="NextButtonHandler" IsEnabled="False" x:Name="ButtonComputerNameNext" />
+                    <Button Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5,5,5,5" Content="Next &gt;&gt;" Width="125" Click="NextButtonHandler" IsEnabled="False" x:Name="ButtonComputerNameNext" Style="{StaticResource AccentedSquareButtonStyle}" />
                 </Grid>
             </TabItem>
             <TabItem x:Name="TabBackupOptions" Header="Backup Options">
@@ -95,7 +95,30 @@
                             </Grid>
                         </GroupBox>
                     </DockPanel>
-                    <Button Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5,5,5,5" Content="Next &gt;&gt;" Width="125" Click="NextButtonHandler" IsEnabled="True" x:Name="ButtonBackupOptionsNext" />
+                    <Button Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5,5,5,5" Content="Next &gt;&gt;" Width="125" Click="NextButtonHandler" IsEnabled="True" x:Name="ButtonBackupOptionsNext" Style="{StaticResource AccentedSquareButtonStyle}" />
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="TabUserProfiles" Header="User Profiles">
+                <Grid Margin="0,0,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <DockPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                        <ListBox DockPanel.Dock="Left" Margin="5,5,5,5" Width="250" x:Name="ListBoxUserProfiles" SelectionMode="Extended" BorderThickness="1" BorderBrush="{DynamicResource AccentBaseColorBrush}" />
+                        <Grid DockPanel.Dock="Right">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock HorizontalAlignment="Left" Margin="5,5,5,5" TextWrapping="Wrap" VerticalAlignment="Top">
+                                Select profiles to be deleted and then click the set delete profiles button.  Profiles will be deleted once the form has been completed.<LineBreak/><LineBreak/>
+                                If you don't need to delete any profiles click next and skip this step.  If you've selected profiles on accident you'll need to clear out your selection and click the set button a second time.
+                            </TextBlock>
+                            <Button Grid.Column="1" x:Name="ButtonSetProfileDelete" Content="Set Profiles For Deletion" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="5,5,5,5" Width="160" Click="SetProfileDeleteHandler" Style="{StaticResource AccentedSquareButtonStyle}" />
+                        </Grid>
+                    </DockPanel>
+                    <Button Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5,5,5,5" Content="Next &gt;&gt;" Width="125" Click="NextButtonHandler" IsEnabled="True" x:Name="ButtonUserProfilesNext" Style="{StaticResource AccentedSquareButtonStyle}" />
                 </Grid>
             </TabItem>
             <TabItem x:Name="TabFinish" Header="Finish">

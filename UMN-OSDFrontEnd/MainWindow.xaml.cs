@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Management;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -22,6 +25,8 @@ namespace UMN_OSDFrontEnd {
         private string ComputerNameEndsWith;
         private bool FormEntryComplete = false;
         private bool PreFlightPass = true;
+        private MessageBoxResult ProfileDeleteConfirm = new MessageBoxResult();
+        private List<string> ProfilesForDeletion = new List<string>();
 
         // CommandLine Arguments
         private bool Development = false;
@@ -202,6 +207,30 @@ namespace UMN_OSDFrontEnd {
                         }
                     }
                 }
+                if(Tab.TabName == "TabUserProfiles") {
+                    if(!Tab.Enabled) {
+                        TabControlMainWindow.Items.Remove( TabUserProfiles );
+                    } else {
+                        SelectQuery Win32UserProfile = new SelectQuery( "Win32_UserProfile" );
+                        ManagementObjectSearcher Searcher = new ManagementObjectSearcher( Win32UserProfile );
+                        SecurityIdentifier CurrentUser = WindowsIdentity.GetCurrent().User;
+                        
+                        foreach(ManagementObject Profile in Searcher.Get()) {
+                            string UserProfileName = new SecurityIdentifier( Profile["SID"].ToString() ).Translate( typeof( NTAccount ) ).ToString();
+                            string UserProfileSid = Profile["SID"].ToString();
+                            
+                            if(CurrentUser.Value != UserProfileSid.ToUpper()) {
+                                if(Tab.DomainUsersOnly) {
+                                    if(UserProfileName.StartsWith(Tab.UserDomainPrefix)) {
+                                        ListBoxUserProfiles.Items.Add( UserProfileName );
+                                    }
+                                } else {
+                                    ListBoxUserProfiles.Items.Add( UserProfileName );
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -239,18 +268,23 @@ namespace UMN_OSDFrontEnd {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender">Contains the object of the control or object that generated the event.</param>
+        /// <param name="e">Contains all the event data.</param>
         private void CompleteButtonHandler( object sender, RoutedEventArgs e ) {
             if(!Development) {
                 Type EnvironmentType = Type.GetTypeFromProgID( "Microsoft.SMS.TSEnvironment" );
                 dynamic TSEnvironment = Activator.CreateInstance( EnvironmentType );
 
                 foreach( AppSettingsTab Tab in Settings.Tabs ) {
-                    if(Tab.TabName == "TabComputerName" && Tab.Enabled == true) {
+                    if(Tab.TabName == "TabComputerName" && Tab.Enabled) {
                         // Here is where we set the computer name based on text input and if that tab is enabled
                         TSEnvironment.Value["OSDComputerName"] = TextBoxComputerName.Text;
                     }
 
-                    if(Tab.TabName == "TabBackupOptions" && Tab.Enabled == true) {
+                    if(Tab.TabName == "TabBackupOptions" && Tab.Enabled) {
                         // Here is where we enable WIM backups if it's checked and the tab is enabled
                         if(WIMBackup.IsChecked.Value) {
                             TSEnvironment.Value["OSDWIMBackup"] = "True";
@@ -265,8 +299,17 @@ namespace UMN_OSDFrontEnd {
                             TSEnvironment.Value["OSDUSMTBackup"] = "False";
                         }
                     }
+
+                    if(Tab.TabName == "TabUserProfiles" && Tab.Enabled) {
+                        DeleteUserProfiles( ProfilesForDeletion );
+                    }
                 }
             } else {
+                foreach(AppSettingsTab Tab in Settings.Tabs) {
+                    if(Tab.TabName == "TabUserProfiles" && Tab.Enabled) {
+                        DeleteUserProfiles( ProfilesForDeletion );
+                    }
+                }
             }
 
             FormEntryComplete = true;
@@ -336,6 +379,47 @@ namespace UMN_OSDFrontEnd {
                 ButtonComputerNameNext.IsEnabled = true;
             } else {
                 ButtonComputerNameNext.IsEnabled = false;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender">Contains the object of the control or object that generated the event.</param>
+        /// <param name="e">Contains all the event data.</param>
+        private void SetProfileDeleteHandler( object sender, RoutedEventArgs e ) {
+            StringBuilder ProfileList = new StringBuilder();
+            foreach(string Profile in ListBoxUserProfiles.SelectedItems) {
+                ProfileList.AppendLine( " " + Profile );
+                ProfilesForDeletion.Add( Profile );
+            }
+
+            ProfileDeleteConfirm = MessageBox.Show( "Are you sure you want to delete profiles:\n" + ProfileList, "Delete Confirmation", MessageBoxButton.YesNo );
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Users"></param>
+        private void DeleteUserProfiles(List<string> Users) {
+            SelectQuery Query = new SelectQuery( "Win32_UserProfile" );
+            ManagementObjectSearcher Searcher = new ManagementObjectSearcher( Query );
+
+            foreach(ManagementObject Profile in Searcher.Get()) {
+                string UserProfileName = "";
+
+                try {
+                    UserProfileName = new SecurityIdentifier( Profile["SID"].ToString() ).Translate( typeof( NTAccount ) ).ToString();
+                } catch(IdentityNotMappedException) {
+                    UserProfileName = Profile["LocalPath"].ToString();
+                }
+                
+                if(Users.Contains(UserProfileName)) {
+                    if(ProfileDeleteConfirm == MessageBoxResult.Yes) {
+                        
+                        Profile.Delete();
+                    }
+                }
             }
         }
     }

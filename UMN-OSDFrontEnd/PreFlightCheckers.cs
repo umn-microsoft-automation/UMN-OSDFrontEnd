@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using System.Management;
 using System.Net.NetworkInformation;
-using System.Windows;
 
 namespace UMN_OSDFrontEnd {
     class PreFlightCheckers {

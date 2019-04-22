@@ -27,6 +27,8 @@ namespace UMN_OSDFrontEnd {
         private bool PreFlightPass = true;
         private MessageBoxResult ProfileDeleteConfirm = new MessageBoxResult();
         private List<string> ProfilesForDeletion = new List<string>();
+        ConfigMgrWebService WebService;
+        private string AppSettingsJson;
 
         // CommandLine Arguments
         private bool Development = false;
@@ -49,22 +51,26 @@ namespace UMN_OSDFrontEnd {
         /// <param name="sender">Contains the object of the control or object that generated the event.</param>
         /// <param name="e">Contains all the event data.</param>
         private void MetroWindow_Loaded( object sender, RoutedEventArgs e ) {
-            string SettingsFile = File.ReadAllText( Path.Combine( AppDomain.CurrentDomain.BaseDirectory.ToString(), "AppSettings.json" ) );
-            Settings = JsonConvert.DeserializeObject<AppSettings>( SettingsFile );
-
             // Parse Application Launch Switches
             string[] CmdArgs = Environment.GetCommandLineArgs();
             OptionSet Options = new OptionSet() {
                 { "d|dev|development", v=>Development = true },
-                { "pe|winpe", v=>InWinPE = true }
+                { "pe|winpe", v=>InWinPE = true },
+                { "s=|settings=", (string v) => AppSettingsJson = v }
             };
 
             List<string> extra;
             try {
                 extra = Options.Parse( CmdArgs );
-            } catch(OptionException Ex) {
+            } catch( OptionException Ex ) {
                 MessageBox.Show( "Error parsing the arguments: " + Ex.Message );
             }
+
+            string SettingsFile = File.ReadAllText( Path.Combine( AppDomain.CurrentDomain.BaseDirectory.ToString(), AppSettingsJson ) );
+            Settings = JsonConvert.DeserializeObject<AppSettings>( SettingsFile );
+
+            // Setup WebService
+            WebService = new ConfigMgrWebService( Settings.WebServiceURI );
 
             // Universal Code (Both PE and Windows)
             if(Development) {
@@ -231,6 +237,51 @@ namespace UMN_OSDFrontEnd {
                         }
                     }
                 }
+
+                if(Tab.TabName == "TabBackupOptions") {
+                    if(!Tab.Enabled) {
+                        TabControlMainWindow.Items.Remove( TabBackupOptions );
+                    }
+                }
+
+                if(Tab.TabName == "TabApplications") {
+                    if(!Tab.Enabled) {
+                        TabControlMainWindow.Items.Remove( TabApplications );
+                    } else {
+                        //MessageBox.Show( "Test" );
+                        foreach(AppSettingsSoftwareSection SoftwareSection in Settings.SoftwareSections) {
+                            //MessageBox.Show( SoftwareSection.SoftwareSection );
+                            TreeViewItem SectionHeader = new TreeViewItem {
+                                Header = SoftwareSection.SoftwareSection,
+                                IsExpanded = true
+                            };
+
+                            foreach(AppSettingsSoftwareSubCategory SoftwareCategory in SoftwareSection.SubCategories) {
+                                //MessageBox.Show( SoftwareCategory.CategoryName );
+                                TreeViewItem CategoryHeader = new TreeViewItem {
+                                    Header = SoftwareCategory.CategoryName,
+                                    IsExpanded = true
+                                };
+                                
+                                CMApplication[] CategoryApps = WebService.GetCMApplicationByCategory( Settings.WebServiceKey, SoftwareCategory.CategorySCCM );
+
+                                foreach(CMApplication Application in CategoryApps) {
+                                    TreeViewItem App = new TreeViewItem {
+                                        Header = new CheckBox {
+                                            Content = Application.ApplicationName
+                                        }
+                                    };
+
+                                    CategoryHeader.Items.Add( App );
+                                }
+
+                                SectionHeader.Items.Add( CategoryHeader );
+                            }
+
+                            TreeViewApplications.Items.Add( SectionHeader );
+                        }
+                    }
+                }
             }
         }
 
@@ -302,6 +353,16 @@ namespace UMN_OSDFrontEnd {
 
                     if(Tab.TabName == "TabUserProfiles" && Tab.Enabled) {
                         DeleteUserProfiles( ProfilesForDeletion );
+                    }
+
+                    if(Tab.TabName == "TabApplications" && Tab.Enabled) {
+                        List<string> AppsToInstall = FindCheckedNodes( TreeViewApplications.Items );
+                        int counter = 1;
+                        foreach(string app in AppsToInstall) {
+                            string appCount = "APP" + counter.ToString( "D2" );
+                            TSEnvironment.Value[appCount] = app;
+                            counter++;
+                        }
                     }
                 }
             } else {
@@ -421,6 +482,30 @@ namespace UMN_OSDFrontEnd {
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="itemCollection"></param>
+        /// <returns></returns>
+        private List<string> FindCheckedNodes(ItemCollection itemCollection) {
+            List<string> checkedNodes = new List<string>();
+
+            foreach(TreeViewItem item in itemCollection) {
+                if(item.HasItems) {
+                    checkedNodes.AddRange( FindCheckedNodes( item.Items ) );
+                } else {
+                    if(item.Header.GetType() == typeof(CheckBox)) {
+                        CheckBox cb = (CheckBox)item.Header;
+                        if(cb.IsChecked == true) {
+                            checkedNodes.Add( cb.Content.ToString() );
+                        }
+                    }
+                }
+            }
+
+            return checkedNodes;
         }
     }
 }

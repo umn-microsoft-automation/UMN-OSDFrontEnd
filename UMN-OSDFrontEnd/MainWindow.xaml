@@ -9,7 +9,7 @@
         mc:Ignorable="d"
         Closing="MetroWindow_Closing"
         Loaded="MetroWindow_Loaded"
-        Title="MainWindow" Height="500" Width="1000" ResizeMode="NoResize">
+        Title="UMN OSD FrontEnd" Height="500" Width="1000" ResizeMode="NoResize">
     <Grid>
         <TabControl x:Name="TabControlMainWindow" Margin="0,0,2,0" TabStripPlacement="Left" FontFamily="Arial" FontSize="14" FontWeight="Bold" RenderTransformOrigin="0.5,0.5">
             <TabItem x:Name="TabPreFlight" Header="Pre-Flight">

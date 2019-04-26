@@ -217,22 +217,34 @@ namespace UMN_OSDFrontEnd {
                     if(!Tab.Enabled) {
                         TabControlMainWindow.Items.Remove( TabUserProfiles );
                     } else {
-                        SelectQuery Win32UserProfile = new SelectQuery( "Win32_UserProfile" );
+                        SelectQuery Win32UserProfile = new SelectQuery( "SELECT * FROM Win32_UserProfile WHERE Loaded != True" );
                         ManagementObjectSearcher Searcher = new ManagementObjectSearcher( Win32UserProfile );
-                        SecurityIdentifier CurrentUser = WindowsIdentity.GetCurrent().User;
+
+                        SecurityIdentifier CurrentUser = null;
+                        try {
+                            CurrentUser = WindowsIdentity.GetCurrent().User;
+                        } catch {
+                            MessageBox.Show( "Error getting current user." );
+                        }
                         
                         foreach(ManagementObject Profile in Searcher.Get()) {
-                            string UserProfileName = new SecurityIdentifier( Profile["SID"].ToString() ).Translate( typeof( NTAccount ) ).ToString();
-                            string UserProfileSid = Profile["SID"].ToString();
-                            
-                            if(CurrentUser.Value != UserProfileSid.ToUpper()) {
-                                if(Tab.DomainUsersOnly) {
-                                    if(UserProfileName.StartsWith(Tab.UserDomainPrefix)) {
+                            try {
+                                string UserProfileName = new SecurityIdentifier( Profile["SID"].ToString() ).Translate( typeof( NTAccount ) ).ToString();
+                                string UserProfileSid = Profile["SID"].ToString();
+
+                                if( CurrentUser.Value != UserProfileSid.ToUpper() ) {
+                                    if( Tab.DomainUsersOnly ) {
+                                        if( UserProfileName.StartsWith( Tab.UserDomainPrefix ) ) {
+                                            ListBoxUserProfiles.Items.Add( UserProfileName );
+                                        }
+                                    } else {
                                         ListBoxUserProfiles.Items.Add( UserProfileName );
                                     }
-                                } else {
-                                    ListBoxUserProfiles.Items.Add( UserProfileName );
                                 }
+                            } catch(IdentityNotMappedException ) {
+                                string userProfileName = Profile["LocalPath"].ToString();
+                                string userProfileSid = Profile["SID"].ToString();
+                                ListBoxUserProfiles.Items.Add( userProfileName );
                             }
                         }
                     }
@@ -463,7 +475,7 @@ namespace UMN_OSDFrontEnd {
         /// </summary>
         /// <param name="Users"></param>
         private void DeleteUserProfiles(List<string> Users) {
-            SelectQuery Query = new SelectQuery( "Win32_UserProfile" );
+            SelectQuery Query = new SelectQuery( "SELECT * FROM Win32_UserProfile WHERE Loaded != True" );
             ManagementObjectSearcher Searcher = new ManagementObjectSearcher( Query );
 
             foreach(ManagementObject Profile in Searcher.Get()) {

@@ -4,7 +4,11 @@
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
 trigger:
-- master
+ branches:
+   include:
+     - master
+     - test-pipeline
+
 
 pool:
   vmImage: 'VS2017-Win2016'
@@ -37,7 +41,7 @@ steps:
 - task: CopyFiles@2
   inputs:
     TargetFolder: '$(Build.BinariesDirectory)'
-    Contents: 'UMN-OSDFrontEnd\UMN-OSDFrontEnd\bin\**'
+    Contents: 'UMN-OSDFrontEnd\UMN-OSDFrontEnd\bin\**\**'
 
 - task: ArchiveFiles@2
   inputs:

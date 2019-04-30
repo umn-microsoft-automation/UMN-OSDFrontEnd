@@ -34,10 +34,10 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
-#- task: CopyFiles@2
-  #inputs:
-    #TargetFolder: '$(Build.ArtifactStagingDirectory)'
-    #Contents: '**\bin\**'
+- task: CopyFiles@2
+  inputs:
+    TargetFolder: '$(Build.BinariesDirectory)'
+    Contents: 'UMN-OSDFrontEnd\UMN-OSDFrontEnd\bin\**'
 
 - task: ArchiveFiles@2
   inputs:

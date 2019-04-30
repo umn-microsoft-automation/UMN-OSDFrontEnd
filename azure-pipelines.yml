@@ -16,6 +16,8 @@ variables:
 
 steps:
 - task: NuGetToolInstaller@0
+  inputs:
+   checkLatest: true
 
 - task: NuGetCommand@2
   inputs:
@@ -32,6 +34,12 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
+- task: CopyFiles@2
+  inputs:
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    Contents: '**\bin\**'
+
 - task: PublishBuildArtifacts@1
   inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: 'drop'

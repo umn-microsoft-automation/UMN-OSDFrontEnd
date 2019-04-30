@@ -8,6 +8,8 @@ trigger:
    include:
      - master
      - test-pipeline
+   exclude:
+     - refs/pulls/*
 
 
 pool:
@@ -41,7 +43,7 @@ steps:
 - task: CopyFiles@2
   inputs:
     TargetFolder: '$(Build.BinariesDirectory)'
-    Contents: 'UMN-OSDFrontEnd\UMN-OSDFrontEnd\bin\**\**'
+    Contents: 'UMN-OSDFrontEnd\bin\**\**'
 
 - task: ArchiveFiles@2
   inputs:

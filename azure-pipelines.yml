@@ -8,9 +8,11 @@ trigger:
    include:
      - master
      - test-pipeline
-   exclude:
-     - refs/pulls/*
 
+pr:
+ branches:
+    include:
+      - master
 
 pool:
   vmImage: 'VS2017-Win2016'

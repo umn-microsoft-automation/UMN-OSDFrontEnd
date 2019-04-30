@@ -34,10 +34,14 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
-- task: CopyFiles@2
+#- task: CopyFiles@2
+  #inputs:
+    #TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    #Contents: '**\bin\**'
+
+- task: ArchiveFiles@2
   inputs:
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
-    Contents: '**\bin\**'
+    rootFolderOrFile: '$(Build.BinariesDirectory)'
 
 - task: PublishBuildArtifacts@1
   inputs:

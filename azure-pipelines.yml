@@ -45,7 +45,6 @@ steps:
   inputs:
     TargetFolder: '$(Build.BinariesDirectory)'
     Contents: 'UMN-OSDFrontEnd\bin\Release\**\**'
-    flattenFolders: true
 
 - task: ArchiveFiles@2
   inputs:

@@ -52,5 +52,5 @@ steps:
 
 - task: PublishBuildArtifacts@1
   inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)\UMN-OSDFrontEnd\bin\Release'
     ArtifactName: 'drop'

@@ -6,8 +6,7 @@
 trigger:
  branches:
    include:
-     - master
-     - test-pipeline
+     - '*' # Trigger builds on all branches
 
 pr:
  branches:
@@ -45,7 +44,8 @@ steps:
 - task: CopyFiles@2
   inputs:
     TargetFolder: '$(Build.BinariesDirectory)'
-    Contents: 'UMN-OSDFrontEnd\bin\**\**'
+    Contents: 'UMN-OSDFrontEnd\bin\Release\**\**'
+    flattenFolders: true
 
 - task: ArchiveFiles@2
   inputs:

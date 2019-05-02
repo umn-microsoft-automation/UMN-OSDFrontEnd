@@ -30,24 +30,6 @@ steps:
   inputs:
     restoreSolution: '$(solution)'
 
-- task: Assembly-Info-NetFramework@2
-  inputs:
-    Path: '$(Build.SourcesDirectory)'
-    FileNames: '**\AssemblyInfo.cs
-
-      **\AssemblyInfo.vb'
-    InsertAttributes: true
-    FileEncoding: 'auto'
-    WriteBOM: true
-    Title: 'UMN OSD FrontEnd'
-    Product: 'UMN OSD FrontEnd'
-    Description: 'A front end for SCCM operating system deployments.'
-    Company: 'University of Minnesota'
-    Copyright: 'Copyright © $(date:YYYY) University of Minnesota'
-    Culture: 'en-US'
-    VersionNumber: '$(Build.BuildNumber)'
-    FileVersionNumber: '1.0.*.*'
-
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'

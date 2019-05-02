@@ -4,7 +4,14 @@
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
 trigger:
-- master
+ branches:
+   include:
+     - '*' # Trigger builds on all branches
+
+pr:
+ branches:
+    include:
+      - master
 
 pool:
   vmImage: 'VS2017-Win2016'
@@ -37,11 +44,11 @@ steps:
 - task: CopyFiles@2
   inputs:
     TargetFolder: '$(Build.BinariesDirectory)'
-    Contents: 'UMN-OSDFrontEnd\UMN-OSDFrontEnd\bin\**'
+    Contents: 'UMN-OSDFrontEnd\bin\Release\**\**'
 
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(Build.BinariesDirectory)'
+    rootFolderOrFile: '$(Build.BinariesDirectory)\UMN-OSDFrontEnd\bin\Release'
 
 - task: PublishBuildArtifacts@1
   inputs:

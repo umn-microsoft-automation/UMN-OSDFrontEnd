@@ -81,8 +81,6 @@ namespace UMN_OSDFrontEnd {
 
                 if(TSEnvironment.Value["_SMSTSMachineName"] != null) {
                     TextBoxComputerName.Text = TSEnvironment.Value["_SMSTSMachineName"];
-                } else {
-                    TextBoxComputerName.Text = "UMN";
                 }
             }
 
@@ -295,6 +293,16 @@ namespace UMN_OSDFrontEnd {
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MetroWindow_ContentRendered( object sender, EventArgs e ) {
+            // Update computer name text box if it's been filled in (needs to be here to work properly).
+            TextBoxComputerName_TextChanged( sender, null );
         }
 
         /// <summary>

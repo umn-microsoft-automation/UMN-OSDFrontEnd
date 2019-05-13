@@ -65,6 +65,7 @@ steps:
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: '$(Build.BinariesDirectory)\UMN-OSDFrontEnd\bin\Release'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildNumber)'
 
 - task: PublishBuildArtifacts@1
   inputs:

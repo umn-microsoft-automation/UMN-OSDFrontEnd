@@ -41,7 +41,6 @@ steps:
     Product: 'UMN OSD FrontEnd'
     Description: 'A front end for SCCM OSD task sequences.'
     Company: 'University of Minnesota'
-    Culture: 'en-US'
     VersionNumber: '$(Build.BuildNumber)'
     FileVersionNumber: '1.0.*.*'
 

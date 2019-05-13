@@ -21,6 +21,8 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
+name: $(Date:yyyy).$(Date:MM).$(Date:dd).$(BuildID)
+
 steps:
 - task: NuGetToolInstaller@0
   inputs:
@@ -29,6 +31,20 @@ steps:
 - task: NuGetCommand@2
   inputs:
     restoreSolution: '$(solution)'
+
+- task: Assembly-Info-NetFramework@2
+  inputs:
+    Path: '$(Build.SourcesDirectory)'
+    FileNames: '**\AssemblyInfo.cs'
+    InsertAttributes: true
+    FileEncoding: 'auto'
+    WriteBOM: false
+    Title: 'UMN OSD FrontEnd'
+    Product: 'UMN OSD FrontEnd'
+    Description: 'A front end for SCCM OSD task sequences.'
+    Company: 'University of Minnesota'
+    VersionNumber: '$(Build.BuildNumber)'
+    FileVersionNumber: '1.0.*.*'
 
 - task: VSBuild@1
   inputs:
@@ -49,6 +65,7 @@ steps:
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: '$(Build.BinariesDirectory)\UMN-OSDFrontEnd\bin\Release'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildNumber)'
 
 - task: PublishBuildArtifacts@1
   inputs:

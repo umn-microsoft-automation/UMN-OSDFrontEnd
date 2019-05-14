@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.DirectoryServices;
 using System.IO;
 using System.Management;
 using System.Runtime.InteropServices;
@@ -127,6 +128,36 @@ namespace UMN_OSDFrontEnd {
                         } else {
                             LabelRuleEndsWith.Content = "OPT - Ends With " + Tab.RuleEndsWith + ":";
                             ComputerNameEndsWith = Tab.RuleEndsWith;
+                        }
+                    }
+                }
+
+                if(Tab.TabName == "TabComputerBind") {
+                    if(!Tab.Enabled) {
+                        TabControlMainWindow.Items.Remove( TabComputerBind );
+                    } else {
+                        foreach(AppSettingsBindLocations BindLocation in Tab.BindLocations) {
+                            TreeViewItem RootOU = new TreeViewItem {
+                                Header = BindLocation.RootName,
+                                IsExpanded = false,
+                                Focusable = false
+                            };
+                            TreeViewComputerBind.Items.Add( RootOU );
+
+                            DirectoryEntry directoryEntry = new DirectoryEntry( "LDAP://" + BindLocation.OU );
+                            if(BindLocation.Recurse) {
+                                AddADNodes( directoryEntry, RootOU );
+                            } else {
+                                foreach(DirectoryEntry child in directoryEntry.Children) {
+                                    TreeViewItem childNode = new TreeViewItem {
+                                        Header = child.Properties["name"][0],
+                                        IsExpanded = false,
+                                        Tag = child.Properties["distinguishedName"][0]
+                                    };
+
+                                    RootOU.Items.Add( childNode );
+                                }
+                            }
                         }
                     }
                 }
@@ -295,6 +326,21 @@ namespace UMN_OSDFrontEnd {
             }
         }
 
+        private void AddADNodes(DirectoryEntry directoryEntry, TreeViewItem treeViewItem) {
+            foreach(DirectoryEntry child in directoryEntry.Children) {
+                if(child.SchemaClassName == "organizationalUnit") {
+                    TreeViewItem childNode = new TreeViewItem {
+                        Header = child.Properties["name"][0],
+                        IsExpanded = false,
+                        Tag = child.Properties["distinguishedName"][0]
+                    };
+
+                    treeViewItem.Items.Add( childNode );
+                    AddADNodes( child, childNode );
+                }
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -355,6 +401,13 @@ namespace UMN_OSDFrontEnd {
                         TSEnvironment.Value["OSDComputerName"] = TextBoxComputerName.Text;
                     }
 
+                    if(Tab.TabName == "TabComputerBind" && Tab.Enabled) {
+                        // Set computer bind location
+                        if( (TreeViewItem)TreeViewComputerBind.SelectedItem != null ) {
+                            TSEnvironment.Value["OSDOULocation"] = "LDAP://" + ( (TreeViewItem)TreeViewComputerBind.SelectedItem ).Tag.ToString();
+                        }
+                    }
+
                     if(Tab.TabName == "TabBackupOptions" && Tab.Enabled) {
                         // Here is where we enable WIM backups if it's checked and the tab is enabled
                         if(WIMBackup.IsChecked.Value) {
@@ -389,6 +442,12 @@ namespace UMN_OSDFrontEnd {
                 foreach(AppSettingsTab Tab in Settings.Tabs) {
                     if(Tab.TabName == "TabUserProfiles" && Tab.Enabled) {
                         DeleteUserProfiles( ProfilesForDeletion );
+                    }
+
+                    if(Tab.TabName == "TabComputerBind" && Tab.Enabled) {
+                        if((TreeViewItem)TreeViewComputerBind.SelectedItem != null) {
+                            MessageBox.Show( "LDAP://" + ( (TreeViewItem)TreeViewComputerBind.SelectedItem ).Tag.ToString() );
+                        }
                     }
                 }
             }
@@ -526,6 +585,25 @@ namespace UMN_OSDFrontEnd {
             }
 
             return checkedNodes;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void DeselectUnwantedOUs( object sender, System.Windows.Input.MouseButtonEventArgs e ) {
+            if(TreeViewComputerBind.SelectedItem != null) {
+                MessageBoxResult messageBoxResult = MessageBox.Show( ( "Are you sure you want to bind to this location?\n\n" + ( (TreeViewItem)TreeViewComputerBind.SelectedItem ).Tag.ToString() ), "Confirm OU Bind Location", MessageBoxButton.YesNo );
+
+                if( messageBoxResult == MessageBoxResult.No ) {
+                    TreeViewItem item = TreeViewComputerBind.SelectedItem as TreeViewItem;
+                    if( item != null ) {
+                        TreeViewComputerBind.Focus();
+                        item.IsSelected = false;
+                    }
+                }
+            }
         }
     }
 }

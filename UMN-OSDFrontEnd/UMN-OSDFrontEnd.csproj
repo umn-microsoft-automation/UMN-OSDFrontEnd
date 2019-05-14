@@ -127,7 +127,6 @@
     <Compile Include="AppSettingsSoftwareSubCategory.cs" />
     <Compile Include="AppSettingsTab.cs" />
     <Compile Include="ConfigMgrWebService.cs" />
-    <Compile Include="ExtendedTreeView.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

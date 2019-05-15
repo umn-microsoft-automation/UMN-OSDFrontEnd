@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.DirectoryServices;
 using System.IO;
 using System.Management;
 using System.Runtime.InteropServices;
@@ -33,7 +32,6 @@ namespace UMN_OSDFrontEnd {
 
         // CommandLine Arguments
         private bool Development = false;
-        private bool InWinPE = false;
 
         // Import the DeleteProfile function from userenv.dll
         [DllImport( "userenv.dll", CharSet = CharSet.Unicode, ExactSpelling = false, SetLastError = true )]
@@ -56,7 +54,6 @@ namespace UMN_OSDFrontEnd {
             string[] CmdArgs = Environment.GetCommandLineArgs();
             OptionSet Options = new OptionSet() {
                 { "d|dev|development", v=>Development = true },
-                { "pe|winpe", v=>InWinPE = true },
                 { "s=|settings=", (string v) => AppSettingsJson = v }
             };
 
@@ -142,21 +139,27 @@ namespace UMN_OSDFrontEnd {
                                 IsExpanded = false,
                                 Focusable = false
                             };
+
                             TreeViewComputerBind.Items.Add( RootOU );
 
-                            DirectoryEntry directoryEntry = new DirectoryEntry( "LDAP://" + BindLocation.OU );
-                            if(BindLocation.Recurse) {
-                                AddADNodes( directoryEntry, RootOU );
-                            } else {
-                                foreach(DirectoryEntry child in directoryEntry.Children) {
-                                    TreeViewItem childNode = new TreeViewItem {
-                                        Header = child.Properties["name"][0],
+                            try {
+                                ADOrganizationalUnit[] organizationalUnits = WebService.GetADOrganizationalUnits( Settings.WebServiceKey, BindLocation.OU );
+                                foreach(ADOrganizationalUnit ou in organizationalUnits) {
+                                    TreeViewItem subTreeItem = new TreeViewItem {
+                                        Header = ou.Name,
                                         IsExpanded = false,
-                                        Tag = child.Properties["distinguishedName"][0]
+                                        Tag = ou.DistinguishedName
                                     };
 
-                                    RootOU.Items.Add( childNode );
+                                    RootOU.Items.Add( subTreeItem );
+
+                                    if(ou.HasChildren) {
+                                        subTreeItem.Focusable = false;
+                                        AddChildADNodes( ou, subTreeItem );
+                                    }
                                 }
+                            } catch {
+                                MessageBox.Show( "Error on AD entry: " + BindLocation.OU );
                             }
                         }
                     }
@@ -289,16 +292,13 @@ namespace UMN_OSDFrontEnd {
                     if(!Tab.Enabled) {
                         TabControlMainWindow.Items.Remove( TabApplications );
                     } else {
-                        //MessageBox.Show( "Test" );
                         foreach(AppSettingsSoftwareSection SoftwareSection in Settings.SoftwareSections) {
-                            //MessageBox.Show( SoftwareSection.SoftwareSection );
                             TreeViewItem SectionHeader = new TreeViewItem {
                                 Header = SoftwareSection.SoftwareSection,
                                 IsExpanded = true
                             };
 
                             foreach(AppSettingsSoftwareSubCategory SoftwareCategory in SoftwareSection.SubCategories) {
-                                //MessageBox.Show( SoftwareCategory.CategoryName );
                                 TreeViewItem CategoryHeader = new TreeViewItem {
                                     Header = SoftwareCategory.CategoryName,
                                     IsExpanded = true
@@ -326,17 +326,26 @@ namespace UMN_OSDFrontEnd {
             }
         }
 
-        private void AddADNodes(DirectoryEntry directoryEntry, TreeViewItem treeViewItem) {
-            foreach(DirectoryEntry child in directoryEntry.Children) {
-                if(child.SchemaClassName == "organizationalUnit") {
-                    TreeViewItem childNode = new TreeViewItem {
-                        Header = child.Properties["name"][0],
-                        IsExpanded = false,
-                        Tag = child.Properties["distinguishedName"][0]
-                    };
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="adOU"></param>
+        /// <param name="tree"></param>
+        private void AddChildADNodes(ADOrganizationalUnit adOU, TreeViewItem tree) {
+            ADOrganizationalUnit[] organizationalUnits = WebService.GetADOrganizationalUnits( Settings.WebServiceKey, adOU.DistinguishedName.Replace( "LDAP://", "" ) );
 
-                    treeViewItem.Items.Add( childNode );
-                    AddADNodes( child, childNode );
+            foreach(ADOrganizationalUnit ou in organizationalUnits) {
+                TreeViewItem newTreeItem = new TreeViewItem {
+                    Header = ou.Name,
+                    IsExpanded = false,
+                    Tag = ou.DistinguishedName
+                };
+
+                tree.Items.Add( newTreeItem );
+
+                if(ou.HasChildren) {
+                    newTreeItem.Focusable = false;
+                    AddChildADNodes( ou, newTreeItem );
                 }
             }
         }
@@ -404,7 +413,7 @@ namespace UMN_OSDFrontEnd {
                     if(Tab.TabName == "TabComputerBind" && Tab.Enabled) {
                         // Set computer bind location
                         if( (TreeViewItem)TreeViewComputerBind.SelectedItem != null ) {
-                            TSEnvironment.Value["OSDOULocation"] = "LDAP://" + ( (TreeViewItem)TreeViewComputerBind.SelectedItem ).Tag.ToString();
+                            TSEnvironment.Value["OSDOULocation"] = ( (TreeViewItem)TreeViewComputerBind.SelectedItem ).Tag.ToString();
                         }
                     }
 
@@ -446,7 +455,7 @@ namespace UMN_OSDFrontEnd {
 
                     if(Tab.TabName == "TabComputerBind" && Tab.Enabled) {
                         if((TreeViewItem)TreeViewComputerBind.SelectedItem != null) {
-                            MessageBox.Show( "LDAP://" + ( (TreeViewItem)TreeViewComputerBind.SelectedItem ).Tag.ToString() );
+                            MessageBox.Show( ( (TreeViewItem)TreeViewComputerBind.SelectedItem ).Tag.ToString() );
                         }
                     }
                 }

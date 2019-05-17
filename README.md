@@ -1,1 +1,1 @@
-Master build status: [![Build Status](https://dev.azure.com/oit-ps-test-pipeline/UMN-OSDFrontEnd/_apis/build/status/umn-microsoft-automation.UMN-OSDFrontEnd?branchName=master)](https://dev.azure.com/oit-ps-test-pipeline/UMN-OSDFrontEnd/_build/latest?definitionId=2&branchName=master)
+Master build status: [![Build Status](https://dev.azure.com/umn-microsoft/UMN-OSDFrontEnd/_apis/build/status/UMN-OSDFrontEnd%20Build%20Pipeline?branchName=master)](https://dev.azure.com/umn-microsoft/UMN-OSDFrontEnd/_build/latest?definitionId=3&branchName=master)

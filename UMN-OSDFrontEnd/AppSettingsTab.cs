@@ -15,5 +15,6 @@
         public AppSettingsPreFlight[] PreFlightChecks { get; set; }
         public bool DomainUsersOnly { get; set; }
         public string UserDomainPrefix { get; set; }
+        public AppSettingsBindLocations[] BindLocations { get; set; }
     }
 }

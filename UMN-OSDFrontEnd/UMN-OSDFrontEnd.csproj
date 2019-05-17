@@ -120,6 +120,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="AppSettings.cs" />
+    <Compile Include="AppSettingsBindLocations.cs" />
     <Compile Include="AppSettingsPreFlight.cs" />
     <Compile Include="AppSettingsSoftwareSection.cs" />
     <Compile Include="AppSettingsSoftwareSubCategory.cs" />

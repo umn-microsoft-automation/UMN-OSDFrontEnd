@@ -32,7 +32,6 @@ namespace UMN_OSDFrontEnd {
 
         // CommandLine Arguments
         private bool Development = false;
-        private bool InWinPE = false;
 
         // Import the DeleteProfile function from userenv.dll
         [DllImport( "userenv.dll", CharSet = CharSet.Unicode, ExactSpelling = false, SetLastError = true )]
@@ -55,7 +54,6 @@ namespace UMN_OSDFrontEnd {
             string[] CmdArgs = Environment.GetCommandLineArgs();
             OptionSet Options = new OptionSet() {
                 { "d|dev|development", v=>Development = true },
-                { "pe|winpe", v=>InWinPE = true },
                 { "s=|settings=", (string v) => AppSettingsJson = v }
             };
 
@@ -127,6 +125,42 @@ namespace UMN_OSDFrontEnd {
                         } else {
                             LabelRuleEndsWith.Content = "OPT - Ends With " + Tab.RuleEndsWith + ":";
                             ComputerNameEndsWith = Tab.RuleEndsWith;
+                        }
+                    }
+                }
+
+                if(Tab.TabName == "TabComputerBind") {
+                    if(!Tab.Enabled) {
+                        TabControlMainWindow.Items.Remove( TabComputerBind );
+                    } else {
+                        foreach(AppSettingsBindLocations BindLocation in Tab.BindLocations) {
+                            TreeViewItem RootOU = new TreeViewItem {
+                                Header = BindLocation.RootName,
+                                IsExpanded = false,
+                                Focusable = false
+                            };
+
+                            TreeViewComputerBind.Items.Add( RootOU );
+
+                            try {
+                                ADOrganizationalUnit[] organizationalUnits = WebService.GetADOrganizationalUnits( Settings.WebServiceKey, BindLocation.OU );
+                                foreach(ADOrganizationalUnit ou in organizationalUnits) {
+                                    TreeViewItem subTreeItem = new TreeViewItem {
+                                        Header = ou.Name,
+                                        IsExpanded = false,
+                                        Tag = ou.DistinguishedName
+                                    };
+
+                                    RootOU.Items.Add( subTreeItem );
+
+                                    if(ou.HasChildren) {
+                                        subTreeItem.Focusable = false;
+                                        AddChildADNodes( ou, subTreeItem );
+                                    }
+                                }
+                            } catch {
+                                MessageBox.Show( "Error on AD entry: " + BindLocation.OU );
+                            }
                         }
                     }
                 }
@@ -258,16 +292,13 @@ namespace UMN_OSDFrontEnd {
                     if(!Tab.Enabled) {
                         TabControlMainWindow.Items.Remove( TabApplications );
                     } else {
-                        //MessageBox.Show( "Test" );
                         foreach(AppSettingsSoftwareSection SoftwareSection in Settings.SoftwareSections) {
-                            //MessageBox.Show( SoftwareSection.SoftwareSection );
                             TreeViewItem SectionHeader = new TreeViewItem {
                                 Header = SoftwareSection.SoftwareSection,
                                 IsExpanded = true
                             };
 
                             foreach(AppSettingsSoftwareSubCategory SoftwareCategory in SoftwareSection.SubCategories) {
-                                //MessageBox.Show( SoftwareCategory.CategoryName );
                                 TreeViewItem CategoryHeader = new TreeViewItem {
                                     Header = SoftwareCategory.CategoryName,
                                     IsExpanded = true
@@ -291,6 +322,30 @@ namespace UMN_OSDFrontEnd {
                             TreeViewApplications.Items.Add( SectionHeader );
                         }
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="adOU"></param>
+        /// <param name="tree"></param>
+        private void AddChildADNodes(ADOrganizationalUnit adOU, TreeViewItem tree) {
+            ADOrganizationalUnit[] organizationalUnits = WebService.GetADOrganizationalUnits( Settings.WebServiceKey, adOU.DistinguishedName.Replace( "LDAP://", "" ) );
+
+            foreach(ADOrganizationalUnit ou in organizationalUnits) {
+                TreeViewItem newTreeItem = new TreeViewItem {
+                    Header = ou.Name,
+                    IsExpanded = false,
+                    Tag = ou.DistinguishedName
+                };
+
+                tree.Items.Add( newTreeItem );
+
+                if(ou.HasChildren) {
+                    newTreeItem.Focusable = false;
+                    AddChildADNodes( ou, newTreeItem );
                 }
             }
         }
@@ -355,6 +410,13 @@ namespace UMN_OSDFrontEnd {
                         TSEnvironment.Value["OSDComputerName"] = TextBoxComputerName.Text;
                     }
 
+                    if(Tab.TabName == "TabComputerBind" && Tab.Enabled) {
+                        // Set computer bind location
+                        if( (TreeViewItem)TreeViewComputerBind.SelectedItem != null ) {
+                            TSEnvironment.Value["OSDOULocation"] = ( (TreeViewItem)TreeViewComputerBind.SelectedItem ).Tag.ToString();
+                        }
+                    }
+
                     if(Tab.TabName == "TabBackupOptions" && Tab.Enabled) {
                         // Here is where we enable WIM backups if it's checked and the tab is enabled
                         if(WIMBackup.IsChecked.Value) {
@@ -389,6 +451,12 @@ namespace UMN_OSDFrontEnd {
                 foreach(AppSettingsTab Tab in Settings.Tabs) {
                     if(Tab.TabName == "TabUserProfiles" && Tab.Enabled) {
                         DeleteUserProfiles( ProfilesForDeletion );
+                    }
+
+                    if(Tab.TabName == "TabComputerBind" && Tab.Enabled) {
+                        if((TreeViewItem)TreeViewComputerBind.SelectedItem != null) {
+                            MessageBox.Show( ( (TreeViewItem)TreeViewComputerBind.SelectedItem ).Tag.ToString() );
+                        }
                     }
                 }
             }
@@ -526,6 +594,25 @@ namespace UMN_OSDFrontEnd {
             }
 
             return checkedNodes;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void DeselectUnwantedOUs( object sender, System.Windows.Input.MouseButtonEventArgs e ) {
+            if(TreeViewComputerBind.SelectedItem != null) {
+                MessageBoxResult messageBoxResult = MessageBox.Show( ( "Are you sure you want to bind to this location?\n\n" + ( (TreeViewItem)TreeViewComputerBind.SelectedItem ).Tag.ToString() ), "Confirm OU Bind Location", MessageBoxButton.YesNo );
+
+                if( messageBoxResult == MessageBoxResult.No ) {
+                    TreeViewItem item = TreeViewComputerBind.SelectedItem as TreeViewItem;
+                    if( item != null ) {
+                        TreeViewComputerBind.Focus();
+                        item.IsSelected = false;
+                    }
+                }
+            }
         }
     }
 }

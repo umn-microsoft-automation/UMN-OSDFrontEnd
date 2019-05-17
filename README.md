@@ -2,6 +2,8 @@
 
 This is a front end for SCCM OSD task sequences.
 
+![Example of the GUI](images/example_gui.gif)
+
 ## Table of Contents
 
 - [UMN-OSDFrontEnd](#umn-osdfrontend)

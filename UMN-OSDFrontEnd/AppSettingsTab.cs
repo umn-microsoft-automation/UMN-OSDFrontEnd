@@ -1,8 +1,10 @@
-﻿namespace UMN_OSDFrontEnd {
+﻿namespace UMN_OSDFrontEnd
+{
     /// <summary>
     /// Contains all the information possible for every tab setting in the AppSettings.json file.
     /// </summary>
-    class AppSettingsTab {
+    class AppSettingsTab
+    {
         public string TabName { get; set; }
         public bool Enabled { get; set; } = true;
         public int RuleLessThan { get; set; }

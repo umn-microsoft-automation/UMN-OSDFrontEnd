@@ -1,8 +1,10 @@
-﻿namespace UMN_OSDFrontEnd {
+﻿namespace UMN_OSDFrontEnd
+{
     /// <summary>
     /// The root class for all settings contained in the AppSettings.json file.
     /// </summary>
-    class AppSettings {
+    class AppSettings
+    {
         public AppSettingsTab[] Tabs { get; set; }
         public int LogoWidth { get; set; }
         public int LogoHeight { get; set; }

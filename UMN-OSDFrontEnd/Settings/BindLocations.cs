@@ -1,6 +1,6 @@
-﻿namespace UMN_OSDFrontEnd
+﻿namespace UMN_OSDFrontEnd.Settings
 {
-    class AppSettingsBindLocations
+    class BindLocations
     {
         public string RootName { get; set; }
         public string OU { get; set; }

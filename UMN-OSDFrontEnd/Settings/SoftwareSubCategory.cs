@@ -1,6 +1,6 @@
-﻿namespace UMN_OSDFrontEnd
+﻿namespace UMN_OSDFrontEnd.Settings
 {
-    class AppSettingsSoftwareSubCategory
+    class SoftwareSubCategory
     {
         public string CategoryName { get; set; }
         public string CategorySCCM { get; set; }

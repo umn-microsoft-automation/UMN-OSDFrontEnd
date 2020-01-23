@@ -32,8 +32,8 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>false</DebugSymbols>
-    <DebugType>none</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -88,6 +88,8 @@
       <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Management" />
     <Reference Include="System.Web.Services" />
@@ -120,13 +122,16 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AppSettings.cs" />
-    <Compile Include="AppSettingsBindLocations.cs" />
-    <Compile Include="AppSettingsPreFlight.cs" />
-    <Compile Include="AppSettingsSoftwareSection.cs" />
-    <Compile Include="AppSettingsSoftwareSubCategory.cs" />
-    <Compile Include="AppSettingsTab.cs" />
+    <Compile Include="FrontEndCheckBox.cs" />
+    <Compile Include="Settings\AppSettings.cs" />
+    <Compile Include="Settings\BindLocations.cs" />
+    <Compile Include="Settings\PreFlightCheck.cs" />
+    <Compile Include="Settings\SoftwareSection.cs" />
+    <Compile Include="Settings\SoftwareSubCategory.cs" />
+    <Compile Include="Settings\Tab.cs" />
+    <Compile Include="Settings\TabLayout.cs" />
     <Compile Include="ConfigMgrWebService.cs" />
+    <Compile Include="FrontEndTab.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -176,6 +181,9 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Themes\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,9 +1,9 @@
-﻿namespace UMN_OSDFrontEnd
+﻿namespace UMN_OSDFrontEnd.Settings
 {
     /// <summary>
     /// Contains all possible settings for an entry in the PreFlight checks in the AppSettings.json file.
     /// </summary>
-    class AppSettingsPreFlight
+    class PreFlightCheck
     {
         public string CheckName { get; set; }
         public string CheckType { get; set; }

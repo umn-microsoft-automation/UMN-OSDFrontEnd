@@ -313,6 +313,7 @@ namespace UMN_OSDFrontEnd
                         }
                     }
                 }
+
                 if (tab.TabName == "TabUserProfiles")
                 {
                     if (!tab.Enabled)
@@ -363,14 +364,6 @@ namespace UMN_OSDFrontEnd
                                 ListBoxUserProfiles.Items.Add(userProfileName);
                             }
                         }
-                    }
-                }
-
-                if (tab.TabName == "TabBackupOptions")
-                {
-                    if (!tab.Enabled)
-                    {
-                        TabControlMainWindow.Items.Remove(TabBackupOptions);
                     }
                 }
 
@@ -542,29 +535,6 @@ namespace UMN_OSDFrontEnd
                         if ((TreeViewItem)TreeViewComputerBind.SelectedItem != null)
                         {
                             tsEnvironment.Value["OSDOULocation"] = ((TreeViewItem)TreeViewComputerBind.SelectedItem).Tag.ToString();
-                        }
-                    }
-
-                    if (tab.TabName == "TabBackupOptions" && tab.Enabled)
-                    {
-                        // Here is where we enable WIM backups if it's checked and the tab is enabled
-                        if (WIMBackup.IsChecked.Value)
-                        {
-                            tsEnvironment.Value["OSDWIMBackup"] = "True";
-                        }
-                        else
-                        {
-                            tsEnvironment.Value["OSDWIMBackup"] = "False";
-                        }
-
-                        // Here is where we enable USMT backups if it's checked and the tab is enabled
-                        if (USMTBackup.IsChecked.Value)
-                        {
-                            tsEnvironment.Value["OSDUSMTBackup"] = "True";
-                        }
-                        else
-                        {
-                            tsEnvironment.Value["OSDUSMTBackup"] = "False";
                         }
                     }
 

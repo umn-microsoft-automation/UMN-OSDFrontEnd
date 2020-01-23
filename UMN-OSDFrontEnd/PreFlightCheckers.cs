@@ -4,7 +4,7 @@ using System.Net.NetworkInformation;
 
 namespace UMN_OSDFrontEnd
 {
-    class PreFlightCheckers
+    internal class PreFlightCheckers
     {
         /// <summary>
         /// Checks to see if any profiles have offline files active.

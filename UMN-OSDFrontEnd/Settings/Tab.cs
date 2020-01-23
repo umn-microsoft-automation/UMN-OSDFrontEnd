@@ -5,7 +5,7 @@ namespace UMN_OSDFrontEnd.Settings
     /// <summary>
     /// Contains all the information possible for every tab setting in the AppSettings.json file.
     /// </summary>
-    class Tab
+    internal class Tab
     {
         public string TabName { get; set; }
         public string TabDisplayName { get; set; }

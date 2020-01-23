@@ -29,10 +29,10 @@ namespace UMN_OSDFrontEnd
         private bool FormEntryComplete = false;
         private bool PreFlightPass = true;
         private MessageBoxResult ProfileDeleteConfirm = new MessageBoxResult();
-        private List<string> ProfilesForDeletion = new List<string>();
-        ConfigMgrWebService WebService;
+        private readonly List<string> ProfilesForDeletion = new List<string>();
+        private ConfigMgrWebService WebService;
         private string AppSettingsJson;
-        private List<FrontEndTab> CustomTabs = new List<FrontEndTab>();
+        private readonly List<FrontEndTab> CustomTabs = new List<FrontEndTab>();
 
         // CommandLine Arguments
         private bool Development = false;
@@ -218,12 +218,16 @@ namespace UMN_OSDFrontEnd
                             bool CheckPass;
                             PreFlightCheckers preFlightCheckers = new PreFlightCheckers();
 
-                            RowDefinition newRow = new RowDefinition();
-                            newRow.Height = GridLength.Auto;
+                            RowDefinition newRow = new RowDefinition
+                            {
+                                Height = GridLength.Auto
+                            };
                             GridPreFlightChecks.RowDefinitions.Add(newRow);
 
-                            Label newLabelDescription = new Label();
-                            newLabelDescription.Content = preFlightCheck.CheckDescription;
+                            Label newLabelDescription = new Label
+                            {
+                                Content = preFlightCheck.CheckDescription
+                            };
                             GridPreFlightChecks.Children.Add(newLabelDescription);
                             Grid.SetRow(newLabelDescription, GridPreFlightChecks.RowDefinitions.Count - 1);
                             Grid.SetColumn(newLabelDescription, 0);

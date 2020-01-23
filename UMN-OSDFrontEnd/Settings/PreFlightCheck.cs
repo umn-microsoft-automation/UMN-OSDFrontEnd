@@ -3,7 +3,7 @@
     /// <summary>
     /// Contains all possible settings for an entry in the PreFlight checks in the AppSettings.json file.
     /// </summary>
-    class PreFlightCheck
+    internal class PreFlightCheck
     {
         public string CheckName { get; set; }
         public string CheckType { get; set; }

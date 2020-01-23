@@ -3,7 +3,7 @@
     /// <summary>
     /// The root class for all settings contained in the AppSettings.json file.
     /// </summary>
-    class AppSettings
+    internal class AppSettings
     {
         public Tab[] Tabs { get; set; }
         public int LogoWidth { get; set; }

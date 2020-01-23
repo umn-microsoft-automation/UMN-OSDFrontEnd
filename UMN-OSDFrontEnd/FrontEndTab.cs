@@ -7,7 +7,7 @@ using UMN_OSDFrontEnd.Settings;
 
 namespace UMN_OSDFrontEnd
 {
-    class FrontEndTab : MetroTabItem
+    internal class FrontEndTab : MetroTabItem
     {
         // Get MahApps.Metro styles
         private readonly Style NextButtonStyle = Application.Current.Resources["AccentedSquareButtonStyle"] as Style;
@@ -197,7 +197,7 @@ namespace UMN_OSDFrontEnd
         {
             List<string> returnList = new List<string>();
 
-            var checkBoxes = this.FindChildren<FrontEndCheckBox>();
+            IEnumerable<FrontEndCheckBox> checkBoxes = this.FindChildren<FrontEndCheckBox>();
 
             foreach (FrontEndCheckBox frontEndCheckBox in checkBoxes)
             {
@@ -214,7 +214,7 @@ namespace UMN_OSDFrontEnd
         {
             List<string> returnList = new List<string>();
 
-            var checkBoxes = this.FindChildren<FrontEndCheckBox>();
+            IEnumerable<FrontEndCheckBox> checkBoxes = this.FindChildren<FrontEndCheckBox>();
 
             foreach (FrontEndCheckBox frontEndCheckBox in checkBoxes)
             {
@@ -231,7 +231,7 @@ namespace UMN_OSDFrontEnd
         {
             Dictionary<string, string> returnVal = new Dictionary<string, string>();
 
-            var comboBoxes = this.FindChildren<ComboBox>();
+            IEnumerable<ComboBox> comboBoxes = this.FindChildren<ComboBox>();
 
             foreach (ComboBox comboBox in comboBoxes)
             {

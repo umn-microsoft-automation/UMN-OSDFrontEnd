@@ -2,7 +2,7 @@
 
 namespace UMN_OSDFrontEnd.Settings
 {
-    class TabLayout
+    internal class TabLayout
     {
         public string TabName { get; set; }
         public string TabDisplayName { get; set; }

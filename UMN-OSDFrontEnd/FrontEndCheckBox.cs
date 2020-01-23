@@ -2,7 +2,7 @@
 
 namespace UMN_OSDFrontEnd
 {
-    class FrontEndCheckBox : CheckBox
+    internal class FrontEndCheckBox : CheckBox
     {
         public string TSVariable { get; set; }
     }

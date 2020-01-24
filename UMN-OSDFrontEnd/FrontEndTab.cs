@@ -122,7 +122,7 @@ namespace UMN_OSDFrontEnd
             }
         }
 
-        public void AddDropDownGroup(string dropDownName, List<string> dropDownOptions, StackPanel stackPanel)
+        public void AddDropDownGroup(string dropDownName, List<string> dropDownOptions, StackPanel stackPanel, string defaultSelectedValue = null)
         {
             ComboBox comboBox = new ComboBox
             {
@@ -135,12 +135,31 @@ namespace UMN_OSDFrontEnd
             {
                 ComboBoxItem comboBoxItem = new ComboBoxItem
                 {
-                    Name = option.Replace(" ", ""),
                     Content = option,
                     Style = ComboBoxItemStyle
                 };
-
+                
                 comboBox.Items.Add(comboBoxItem);
+            }
+
+            if(defaultSelectedValue != null)
+            {
+                int selectionIndex = -1;
+                foreach(ComboBoxItem comboBoxItem in comboBox.Items)
+                {
+                    if(comboBoxItem.Content.ToString() == defaultSelectedValue)
+                    {
+                        selectionIndex = comboBox.Items.IndexOf(comboBoxItem);
+                    }
+                }
+
+                if(selectionIndex > -1)
+                {
+                    comboBox.SelectedIndex = selectionIndex;
+                } else
+                {
+                    MessageBox.Show("Didn't find index of " + defaultSelectedValue);
+                }
             }
 
             stackPanel.Children.Add(comboBox);
@@ -162,6 +181,7 @@ namespace UMN_OSDFrontEnd
                     case "dropDownGroup":
                         StackPanel dropDownGroupPanel = AddGroupBox(tabLayoutItem.GroupTitle);
                         List<string> dropDownOptions = new List<string>();
+                        string dropDownDefaultValue = null;
 
                         if (tabLayoutItem.DropDownOptionsDataType.ToLower() == "string")
                         {
@@ -174,18 +194,27 @@ namespace UMN_OSDFrontEnd
                                 Type EnvironmentType = Type.GetTypeFromProgID("Microsoft.SMS.TSEnvironment");
                                 dynamic TSEnvironment = Activator.CreateInstance(EnvironmentType);
 
-                                string TSVariableOptions = TSEnvironment.Value[tabLayoutItem.DropDownOptionsTSVariable];
+                                string tsVariableOptions = TSEnvironment.Value[tabLayoutItem.DropDownOptionsTSVariable];
+                                if(tabLayoutItem.DropDownOptionsDefaultValueTSVariable != null)
+                                {
+                                    dropDownDefaultValue = TSEnvironment.Value[tabLayoutItem.DropDownOptionsDefaultValueTSVariable];
+                                }
 
-                                dropDownOptions.AddRange(TSVariableOptions.Split(tabLayoutItem.DropDownOptionsTSVariableDelimiter.ToCharArray(), StringSplitOptions.RemoveEmptyEntries));
+                                dropDownOptions.AddRange(tsVariableOptions.Split(tabLayoutItem.DropDownOptionsTSVariableDelimiter.ToCharArray(), StringSplitOptions.RemoveEmptyEntries));
                             }
                             else
                             {
+                                if (tabLayoutItem.DropDownOptionsDefaultValueTSVariable != null)
+                                {
+                                    dropDownDefaultValue = "Option3";
+                                }
+
                                 string values = "Option1" + tabLayoutItem.DropDownOptionsTSVariableDelimiter + "Option2" + tabLayoutItem.DropDownOptionsTSVariableDelimiter + "Option3";
                                 dropDownOptions.AddRange(values.Split(tabLayoutItem.DropDownOptionsTSVariableDelimiter.ToCharArray(), StringSplitOptions.RemoveEmptyEntries));
                             }
                         }
 
-                        AddDropDownGroup(tabLayoutItem.DropDownOptionsTSVariable, dropDownOptions, dropDownGroupPanel);
+                        AddDropDownGroup(tabLayoutItem.DropDownOptionsTSVariable, dropDownOptions, dropDownGroupPanel, dropDownDefaultValue);
                         break;
                     default:
                         break;
@@ -235,7 +264,7 @@ namespace UMN_OSDFrontEnd
 
             foreach (ComboBox comboBox in comboBoxes)
             {
-                MessageBox.Show(comboBox.Name + " :: " + comboBox.Text);
+                returnVal.Add(comboBox.Name, comboBox.Text);
             }
 
             return returnVal;

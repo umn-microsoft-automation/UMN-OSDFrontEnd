@@ -16,6 +16,7 @@ namespace UMN_OSDFrontEnd.Settings
         public string DropDownOptionsDataType { get; set; }
         public string DropDownOptionsTSVariable { get; set; }
         public string DropDownOptionsTSVariableDelimiter { get; set; }
+        public string DropDownOptionsDefaultValueTSVariable { get; set; }
         public List<string> ManualDropDownOptions { get; set; }
     }
 }

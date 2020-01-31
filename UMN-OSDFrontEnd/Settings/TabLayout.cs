@@ -12,7 +12,7 @@ namespace UMN_OSDFrontEnd.Settings
         public string CheckBoxOptionsDataType { get; set; }
         public string CheckBoxOptionsTSVariable { get; set; }
         public string CheckBoxOptionsTSVariableDelimiter { get; set; }
-        public List<FrontEndCheckBox> ManualCheckBoxes { get; set; }
+        public List<FrontEndCheckBox> ManualCheckBoxOptions { get; set; }
         public string DropDownOptionsDataType { get; set; }
         public string DropDownOptionsTSVariable { get; set; }
         public string DropDownOptionsTSVariableDelimiter { get; set; }

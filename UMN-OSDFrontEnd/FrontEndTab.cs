@@ -115,6 +115,8 @@ namespace UMN_OSDFrontEnd
 
         public void AddCheckBoxGroup(List<FrontEndCheckBox> frontEndCheckBoxes, StackPanel stackPanel)
         {
+            _ = frontEndCheckBoxes ?? throw new ArgumentNullException(nameof(frontEndCheckBoxes));
+
             foreach (FrontEndCheckBox frontEndCheckBox in frontEndCheckBoxes)
             {
                 frontEndCheckBox.Style = CheckBoxStyle;
@@ -138,25 +140,26 @@ namespace UMN_OSDFrontEnd
                     Content = option,
                     Style = ComboBoxItemStyle
                 };
-                
+
                 comboBox.Items.Add(comboBoxItem);
             }
 
-            if(defaultSelectedValue != null)
+            if (defaultSelectedValue != null)
             {
                 int selectionIndex = -1;
-                foreach(ComboBoxItem comboBoxItem in comboBox.Items)
+                foreach (ComboBoxItem comboBoxItem in comboBox.Items)
                 {
-                    if(comboBoxItem.Content.ToString() == defaultSelectedValue)
+                    if (comboBoxItem.Content.ToString() == defaultSelectedValue)
                     {
                         selectionIndex = comboBox.Items.IndexOf(comboBoxItem);
                     }
                 }
 
-                if(selectionIndex > -1)
+                if (selectionIndex > -1)
                 {
                     comboBox.SelectedIndex = selectionIndex;
-                } else
+                }
+                else
                 {
                     MessageBox.Show("Didn't find index of " + defaultSelectedValue);
                 }
@@ -176,7 +179,58 @@ namespace UMN_OSDFrontEnd
                         break;
                     case "checkBoxGroup":
                         StackPanel checkBoxGroupPanel = AddGroupBox(tabLayoutItem.GroupTitle);
-                        AddCheckBoxGroup(tabLayoutItem.ManualCheckBoxes, checkBoxGroupPanel);
+                        List<FrontEndCheckBox> frontEndCheckBoxes = new List<FrontEndCheckBox>();
+                        if (!Development)
+                        {
+                            Type EnvironmentType = Type.GetTypeFromProgID("Microsoft.SMS.TSEnvironment");
+                            dynamic TSEnvironment = Activator.CreateInstance(EnvironmentType);
+
+                            if (tabLayoutItem.CheckBoxOptionsDataType == "array")
+                            {
+                                frontEndCheckBoxes.AddRange(tabLayoutItem.ManualCheckBoxOptions);
+                            }
+                            else if (tabLayoutItem.CheckBoxOptionsDataType == "tsvariable")
+                            {
+                                string tsVariableOptions = TSEnvironment.Value[tabLayoutItem.CheckBoxOptionsTSVariable];
+                                if (tabLayoutItem.CheckBoxOptionsTSVariableDelimiter != null)
+                                {
+                                    foreach (string checkBoxItem in tsVariableOptions.Split(tabLayoutItem.CheckBoxOptionsTSVariableDelimiter.ToCharArray(), StringSplitOptions.RemoveEmptyEntries))
+                                    {
+                                        frontEndCheckBoxes.Add(new FrontEndCheckBox
+                                        {
+                                            Content = checkBoxItem,
+                                            IsChecked = false,
+                                            TSVariable = checkBoxItem
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if(tabLayoutItem.CheckBoxOptionsDataType == "array")
+                            {
+                                frontEndCheckBoxes.AddRange(tabLayoutItem.ManualCheckBoxOptions);
+                            }
+                            else if(tabLayoutItem.CheckBoxOptionsDataType == "tsvariable")
+                            {
+                                if (tabLayoutItem.CheckBoxOptionsTSVariable != null && tabLayoutItem.CheckBoxOptionsTSVariableDelimiter != null)
+                                {
+                                    string values = "Option1" + tabLayoutItem.CheckBoxOptionsTSVariableDelimiter + "Option2" + tabLayoutItem.CheckBoxOptionsTSVariableDelimiter + "Option3";
+                                    foreach (string checkBoxItem in values.Split(tabLayoutItem.CheckBoxOptionsTSVariableDelimiter.ToCharArray(), StringSplitOptions.RemoveEmptyEntries))
+                                    {
+                                        frontEndCheckBoxes.Add(new FrontEndCheckBox
+                                        {
+                                            Content = checkBoxItem,
+                                            IsChecked = false,
+                                            TSVariable = checkBoxItem
+                                        });
+                                    }
+                                }
+                            }
+                        }
+
+                        AddCheckBoxGroup(frontEndCheckBoxes, checkBoxGroupPanel);
                         break;
                     case "dropDownGroup":
                         StackPanel dropDownGroupPanel = AddGroupBox(tabLayoutItem.GroupTitle);
@@ -195,7 +249,7 @@ namespace UMN_OSDFrontEnd
                                 dynamic TSEnvironment = Activator.CreateInstance(EnvironmentType);
 
                                 string tsVariableOptions = TSEnvironment.Value[tabLayoutItem.DropDownOptionsTSVariable];
-                                if(tabLayoutItem.DropDownOptionsDefaultValueTSVariable != null)
+                                if (tabLayoutItem.DropDownOptionsDefaultValueTSVariable != null)
                                 {
                                     dropDownDefaultValue = TSEnvironment.Value[tabLayoutItem.DropDownOptionsDefaultValueTSVariable];
                                 }

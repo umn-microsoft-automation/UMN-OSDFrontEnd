@@ -74,7 +74,15 @@ namespace UMN_OSDFrontEnd
             }
 
             string SettingsFile = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory.ToString(), AppSettingsJson));
-            Settings = JsonConvert.DeserializeObject<AppSettings>(SettingsFile);
+            try
+            {
+                Settings = JsonConvert.DeserializeObject<AppSettings>(SettingsFile);
+            } catch(JsonException ex)
+            {
+                MessageBox.Show(ex.Message, "Error parsing JSON", MessageBoxButton.OK, MessageBoxImage.Error);
+                Environment.Exit(22);
+            }
+            
 
             // Setup WebService
             WebService = new ConfigMgrWebService(Settings.WebServiceURI);

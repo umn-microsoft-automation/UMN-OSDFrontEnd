@@ -114,6 +114,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Settings\ManualDropDown.cs" />
+    <Compile Include="Settings\ManualTextBlock.cs" />
+    <Compile Include="Settings\TSVariableCheckBoxes.cs" />
+    <Compile Include="Settings\TSVariableDropDownGroup.cs" />
+    <Compile Include="Settings\TSVariableTextBlock.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -125,6 +130,7 @@
     <Compile Include="FrontEndCheckBox.cs" />
     <Compile Include="Settings\AppSettings.cs" />
     <Compile Include="Settings\BindLocations.cs" />
+    <Compile Include="Settings\ManualCheckBoxes.cs" />
     <Compile Include="Settings\PreFlightCheck.cs" />
     <Compile Include="Settings\SoftwareSection.cs" />
     <Compile Include="Settings\SoftwareSubCategory.cs" />

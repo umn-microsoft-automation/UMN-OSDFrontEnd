@@ -166,7 +166,10 @@ namespace UMN_OSDFrontEnd
                 }
                 else
                 {
-                    MessageBox.Show("Didn't find index of " + defaultSelectedValue);
+                    if(Development)
+                    {
+                        MessageBox.Show("Didn't find index of " + defaultSelectedValue);
+                    }
                 }
             }
 

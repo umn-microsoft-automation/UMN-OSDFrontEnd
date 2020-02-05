@@ -114,6 +114,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="FrontEndComboBox.cs" />
     <Compile Include="Settings\ManualDropDown.cs" />
     <Compile Include="Settings\ManualTextBlock.cs" />
     <Compile Include="Settings\TSVariableCheckBoxes.cs" />

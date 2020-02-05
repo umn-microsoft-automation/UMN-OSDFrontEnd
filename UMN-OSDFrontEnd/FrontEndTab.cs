@@ -128,11 +128,11 @@ namespace UMN_OSDFrontEnd
             }
         }
 
-        public void AddDropDownGroup(string name, List<string> options, StackPanel stackPanel, string defaultSelectedValue = null)
+        public void AddDropDownGroup(string tsVariable, List<string> options, StackPanel stackPanel, string defaultSelectedValue = null)
         {
-            ComboBox comboBox = new ComboBox
+            FrontEndComboBox comboBox = new FrontEndComboBox
             {
-                Name = SanitizeName(name),
+                TSVariable = tsVariable,
                 Style = ComboBoxStyle,
                 SelectedIndex = 0
             };
@@ -141,7 +141,6 @@ namespace UMN_OSDFrontEnd
             {
                 ComboBoxItem comboBoxItem = new ComboBoxItem
                 {
-                    Name = SanitizeName(option),
                     Content = option,
                     Style = ComboBoxItemStyle
                 };
@@ -220,7 +219,7 @@ namespace UMN_OSDFrontEnd
                             }
                             else if(tabLayoutItem.TSVariableCheckBoxOptions != null)
                             {
-                                string values = "Option1" + tabLayoutItem.TSVariableCheckBoxOptions.Delimiter + "Option2" + tabLayoutItem.TSVariableCheckBoxOptions.Delimiter + "Option3";
+                                string values = "Option-1" + tabLayoutItem.TSVariableCheckBoxOptions.Delimiter + "Option2" + tabLayoutItem.TSVariableCheckBoxOptions.Delimiter + "Option3";
                                 foreach (string checkBoxItem in values.Split(tabLayoutItem.TSVariableCheckBoxOptions.Delimiter.ToCharArray(), StringSplitOptions.RemoveEmptyEntries))
                                 {
                                     frontEndCheckBoxes.Add(new FrontEndCheckBox
@@ -271,7 +270,7 @@ namespace UMN_OSDFrontEnd
                                 dropDownName = tabLayoutItem.TSVariableDropDownOptions.SetTSVariable;
                                 dropDownDefaultValue = "Option3";
 
-                                string values = "Option1" + tabLayoutItem.TSVariableDropDownOptions.Delimiter + "Option2" + tabLayoutItem.TSVariableDropDownOptions.Delimiter + "Option3";
+                                string values = "Option-1" + tabLayoutItem.TSVariableDropDownOptions.Delimiter + "Option2" + tabLayoutItem.TSVariableDropDownOptions.Delimiter + "Option3";
                                 dropDownOptions.AddRange(values.Split(tabLayoutItem.TSVariableDropDownOptions.Delimiter.ToCharArray(), StringSplitOptions.RemoveEmptyEntries));
                             }
                         }
@@ -322,11 +321,11 @@ namespace UMN_OSDFrontEnd
         {
             Dictionary<string, string> returnVal = new Dictionary<string, string>();
 
-            IEnumerable<ComboBox> comboBoxes = this.FindChildren<ComboBox>();
+            IEnumerable<FrontEndComboBox> comboBoxes = this.FindChildren<FrontEndComboBox>();
 
-            foreach (ComboBox comboBox in comboBoxes)
+            foreach (FrontEndComboBox comboBox in comboBoxes)
             {
-                returnVal.Add(comboBox.Name, comboBox.Text);
+                returnVal.Add(comboBox.TSVariable, comboBox.Text);
             }
 
             return returnVal;

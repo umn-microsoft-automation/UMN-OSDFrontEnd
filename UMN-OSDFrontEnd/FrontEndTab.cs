@@ -23,6 +23,7 @@ namespace UMN_OSDFrontEnd
         public RowDefinition MainRow;
         public RowDefinition NavRow;
         public StackPanel MainPanel;
+        public ScrollViewer MainPanelScrollViewer;
         private readonly Grid TabGrid;
 
         static readonly Random random = new Random();
@@ -66,13 +67,20 @@ namespace UMN_OSDFrontEnd
                 HorizontalAlignment = HorizontalAlignment.Stretch
             };
 
+            MainPanelScrollViewer = new ScrollViewer
+            {
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto
+            };
+
+            MainPanelScrollViewer.Content = MainPanel;
+
             TabGrid.RowDefinitions.Add(MainRow);
             TabGrid.RowDefinitions.Add(NavRow);
 
-            Grid.SetRow(MainPanel, 0);
+            Grid.SetRow(MainPanelScrollViewer, 0);
             Grid.SetRow(NextButton, 1);
             TabGrid.Children.Add(NextButton);
-            TabGrid.Children.Add(MainPanel);
+            TabGrid.Children.Add(MainPanelScrollViewer);
 
             Content = TabGrid;
         }

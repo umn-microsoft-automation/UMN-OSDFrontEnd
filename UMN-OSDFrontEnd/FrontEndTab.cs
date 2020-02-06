@@ -210,10 +210,31 @@ namespace UMN_OSDFrontEnd
 
                                 foreach (string checkBoxItem in tsVariableOptions.Split(tabLayoutItem.TSVariableCheckBoxOptions.Delimiter.ToCharArray(), StringSplitOptions.RemoveEmptyEntries))
                                 {
+                                    string tsVariableValue = "false";
+                                    bool isChecked;
+
+                                    try
+                                    {
+                                        tsVariableValue = TSEnvironment.Value[checkBoxItem];
+                                    }
+                                    catch
+                                    {
+                                        tsVariableValue = "false";
+                                    }
+
+                                    if(tsVariableValue.ToLower() == "true")
+                                    {
+                                        isChecked = true;
+                                    }
+                                    else
+                                    {
+                                        isChecked = false;
+                                    }
+
                                     frontEndCheckBoxes.Add(new FrontEndCheckBox
                                     {
                                         Content = checkBoxItem,
-                                        IsChecked = false,
+                                        IsChecked = isChecked,
                                         TSVariable = checkBoxItem
                                     });
                                 }

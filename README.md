@@ -24,11 +24,20 @@ This is a front end for SCCM OSD task sequences.
     - [User Profiles Tab](#user-profiles-tab)
     - [Applications Tab](#applications-tab)
     - [Software Sections](#software-sections)
+    - [Custom Tabs](#custom-tabs)
+      - [Text Blocks](#text-blocks)
+        - [Manual Text Blocks](#manual-text-blocks)
+        - [Dynamic Text Blocks](#dynamic-text-blocks)
+      - [CheckBox Group](#checkbox-group)
+        - [Manual CheckBox Group](#manual-checkbox-group)
+        - [Dynamic CheckBox Group](#dynamic-checkbox-group)
+      - [Drop Down Menu Group](#drop-down-menu-group)
+        - [Manual Drop Down Menu Group](#manual-drop-down-menu-group)
+        - [Dynamic Drop Down Menu Group](#dynamic-drop-down-menu-group)
 
 ## Build Status
 
 [![Build Status](https://dev.azure.com/umn-microsoft/UMN-OSDFrontEnd/_apis/build/status/UMN-OSDFrontEnd%20Build%20Pipeline?branchName=master)](https://dev.azure.com/umn-microsoft/UMN-OSDFrontEnd/_build/latest?definitionId=3&branchName=master)
-
 
 ## Dependencies
 
@@ -39,12 +48,12 @@ This is a front end for SCCM OSD task sequences.
 ### Production
 
 1. Download the [latest release](https://github.com/umn-microsoft-automation/UMN-OSDFrontEnd/releases/latest)
-2. Unzip and [create a package](https://docs.microsoft.com/en-us/sccm/apps/deploy-use/packages-and-programs) in SCCM.
-   * Create an AppSettings.json file (it can be called what you like) to define the properties you want in your front end.  See the section on app settings for more information.
-   * Get the **ServiceUI.exe** from an MDT installation directory (C:\Program Files\Microsoft Deployment Toolkit\Templates\Distribution\Tools\x64 or x86) and make sure it's in your package source files.  For my own sanity I made seperate x86 and x64 folders for files specific to a bit level.
+2. Unzip and [create a package](https://docs.microsoft.com/sccm/apps/deploy-use/packages-and-programs) in SCCM.
+   - Create an AppSettings.json file (it can be called what you like) to define the properties you want in your front end.  See the section on app settings for more information.
+   - Get the **ServiceUI.exe** from an MDT installation directory (C:\Program Files\Microsoft Deployment Toolkit\Templates\Distribution\Tools\x64 or x86) and make sure it's in your package source files.  For my own sanity I made seperate x86 and x64 folders for files specific to a bit level.
 3. Create a new "Run Command Line" step in your task sequence.
-   * Set the package to be the one you created in the previous step.
-   * For the command line set it up something along these lines `x64\ServiceUI.exe -process:TSProgressUI.exe UMN-OSDFrontEnd.exe -s AppSettings.json`.
+   - Set the package to be the one you created in the previous step.
+   - For the command line set it up something along these lines `x64\ServiceUI.exe -process:TSProgressUI.exe UMN-OSDFrontEnd.exe -s AppSettings.json`.
 4. You may need two different front end steps for each bit level.
 5. You can change configurations of the app using the json and include them in the package source then have different front ends for different situations.  In our task sequence we have one json configuration when the task sequence is run from Windows and a different configuration when run from WinPE as certain functions don't work or are not required when running from WinPE.
 
@@ -102,6 +111,7 @@ To configure the computer name tab add an entry to the tabs array with the **tab
     ]
 }
 ```
+
 ### Computer Bind Tab
 
 Once you've enabled the computer bind tab setup your bind locations array.  The **rootName** will only be used as a display name for that node.  Then add an OU and every OU under that OU will be scanned an added.  Currently, only the base most OUs in that tree will be a valid bind location.  Every other node will not be selectable as a bind location.
@@ -130,16 +140,17 @@ Once you've enabled the computer bind tab setup your bind locations array.  The 
 ### Pre Flight Check Tab
 
 Just like the other tabs, enable the pre flight tab and then set up the various pre flight checks you need.  Currently there are only five "checkers" that are available:
-* physicalDiskCount
-  * Checks the number of physical disks is below the defined limit.
-* ethernetConnected
-  * Checks to ensure that the device is connected to an Ethernet jack.
-* networkConnectivityCheck
-  * Pings a given IP address to ensure it's up and running.  Useful for confirming required network resources are available prior to starting an image.
-* 64bitOS
-  * Checks if the OS running the front end is 64 bit.
-* offlineFilesDetected
-  * Goes through the user profiles on the computer to determine if any have offline files enabled.
+
+- physicalDiskCount
+  - Checks the number of physical disks is below the defined limit.
+- ethernetConnected
+  - Checks to ensure that the device is connected to an Ethernet jack.
+- networkConnectivityCheck
+  - Pings a given IP address to ensure it's up and running.  Useful for confirming required network resources are available prior to starting an image.
+- 64bitOS
+  - Checks if the OS running the front end is 64 bit.
+- offlineFilesDetected
+  - Goes through the user profiles on the computer to determine if any have offline files enabled.
 
 ```json
 {
@@ -190,7 +201,7 @@ Just like the other tabs, enable the pre flight tab and then set up the various 
 
 ### Backup Options Tab
 
-These are currently hard coded in and include a checkbox for WIM and USMT.
+> ⚠ **WARNING** This feature has been removed in the most recent release
 
 ```json
 {
@@ -269,5 +280,126 @@ These are the application administrative categories (this can be set by right cl
             ]
         }
   ]
+}
+```
+
+### Custom Tabs
+
+You can now add custom tabs with custom UI elements to the front end.  It currently supports text blocks, drop down menus and check boxes.  Each UI element is placed into a group box for organization.
+
+In order to set up a custom tab you'll need the basic framing code.
+
+```json
+{
+    "tabName": "Example Custom Tab",
+    "tabType": "CustomTab",
+    "enabled": true,
+    "tabDisplayName": "Computer Setup",
+    "tabLayout": [
+        // Layout items
+    ]
+}
+```
+
+#### Text Blocks
+
+Text blocks are just simple text added to the front tab to give users info on what options are available to them.
+
+##### Manual Text Blocks
+
+```json
+{ // Example static text box
+    "groupTitle": "some title",
+    "itemType": "textBlock",
+    "dynamic": false,
+    "manualTextBlock": {
+    "text": "This is just example text"
+    }
+}
+```
+
+##### Dynamic Text Blocks
+
+```json
+{ // Example dynamic text from ts variable
+    "groupTitle": "some title",
+    "itemType": "textBlock",
+    "dynamic": true,
+    "tsVariableTextBlock": {
+    "tsVariable": "tsvariablename"
+    }
+}
+```
+
+#### CheckBox Group
+
+##### Manual CheckBox Group
+
+```json
+{ // Example of static checkboxes
+    "groupTitle": "Manual CheckBox Group",
+    "itemType": "checkBoxGroup",
+    "dataType": "string",
+    "manualCheckBoxOptions": {
+    "checkBoxes": [
+        {
+        "content": "Example checkbox 1",
+        "isChecked": true,
+        "tsVariable": "tsvarname"
+        },
+        {
+        "content": "Example checkbox 2",
+        "isChecked": false,
+        "tsVariable": "tsvarname"
+        }
+    ]
+    }
+}
+```
+
+##### Dynamic CheckBox Group
+
+```json
+{ // Example of dynamic checkboxes
+    "groupTitle": "TSVariable Checkboxes",
+    "itemType": "checkBoxGroup",
+    "dynamic": true,
+    "tsVariableCheckBoxOptions": {
+    "tsVariable": "tsvarname",
+    "delimiter": ","
+    }
+}
+```
+
+#### Drop Down Menu Group
+
+##### Manual Drop Down Menu Group
+
+```json
+{ // Example of static drop down menu with a default value
+    "itemType": "dropDownGroup",
+    "groupTitle": "Manual Drop Down Menu With Default Selection",
+    "manualDropDownOptions": {
+    "setTSVariable": "tsvarname",
+    "items": [ "Option1", "Option2", "Option3" ],
+    "defaultValue": "Option2",
+    "defaultValueType": "string"
+    }
+}
+```
+
+##### Dynamic Drop Down Menu Group
+
+```json
+{ // Example of dynamic drop down menu with a default value from a variable
+    "itemType": "dropDownGroup",
+    "groupTitle": "TSVariable drop down with dynamic default value",
+    "tsVariableDropDownOptions": {
+    "setTSVariable": "tsvarname",
+    "tsVariable": "tsvarname",
+    "defaultValue": "tsvarname",
+    "delimiter": ",",
+    "defaultValueType": "tsvariable"
+    }
 }
 ```

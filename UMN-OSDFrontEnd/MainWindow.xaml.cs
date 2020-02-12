@@ -1,4 +1,7 @@
-﻿using System;
+﻿using MahApps.Metro.Controls;
+using Mono.Options;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Management;
@@ -9,15 +12,15 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using MahApps.Metro.Controls;
-using Mono.Options;
-using Newtonsoft.Json;
+using UMN_OSDFrontEnd.Settings;
 
-namespace UMN_OSDFrontEnd {
+namespace UMN_OSDFrontEnd
+{
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : MetroWindow {
+    public partial class MainWindow : MetroWindow
+    {
         private AppSettings Settings;
         private int ComputerNameGreaterThan;
         private int ComputerNameLessThan;
@@ -26,21 +29,23 @@ namespace UMN_OSDFrontEnd {
         private bool FormEntryComplete = false;
         private bool PreFlightPass = true;
         private MessageBoxResult ProfileDeleteConfirm = new MessageBoxResult();
-        private List<string> ProfilesForDeletion = new List<string>();
-        ConfigMgrWebService WebService;
+        private readonly List<string> ProfilesForDeletion = new List<string>();
+        private ConfigMgrWebService WebService;
         private string AppSettingsJson;
+        private readonly List<FrontEndTab> CustomTabs = new List<FrontEndTab>();
 
         // CommandLine Arguments
         private bool Development = false;
 
         // Import the DeleteProfile function from userenv.dll
-        [DllImport( "userenv.dll", CharSet = CharSet.Unicode, ExactSpelling = false, SetLastError = true )]
-        public static extern bool DeleteProfile( string lpSidString, string lpProfilePath, string lpComputerName );
+        [DllImport("userenv.dll", CharSet = CharSet.Unicode, ExactSpelling = false, SetLastError = true)]
+        public static extern bool DeleteProfile(string lpSidString, string lpProfilePath, string lpComputerName);
 
         /// <summary>
         /// Main function for the form.
         /// </summary>
-        public MainWindow() {
+        public MainWindow()
+        {
             InitializeComponent();
         }
 
@@ -49,7 +54,8 @@ namespace UMN_OSDFrontEnd {
         /// </summary>
         /// <param name="sender">Contains the object of the control or object that generated the event.</param>
         /// <param name="e">Contains all the event data.</param>
-        private void MetroWindow_Loaded( object sender, RoutedEventArgs e ) {
+        private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
+        {
             // Parse Application Launch Switches
             string[] CmdArgs = Environment.GetCommandLineArgs();
             OptionSet Options = new OptionSet() {
@@ -58,26 +64,41 @@ namespace UMN_OSDFrontEnd {
             };
 
             List<string> extra;
-            try {
-                extra = Options.Parse( CmdArgs );
-            } catch( OptionException Ex ) {
-                MessageBox.Show( "Error parsing the arguments: " + Ex.Message );
+            try
+            {
+                extra = Options.Parse(CmdArgs);
+            }
+            catch (OptionException Ex)
+            {
+                MessageBox.Show("Error parsing the arguments: " + Ex.Message);
             }
 
-            string SettingsFile = File.ReadAllText( Path.Combine( AppDomain.CurrentDomain.BaseDirectory.ToString(), AppSettingsJson ) );
-            Settings = JsonConvert.DeserializeObject<AppSettings>( SettingsFile );
+            string SettingsFile = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory.ToString(), AppSettingsJson));
+            try
+            {
+                Settings = JsonConvert.DeserializeObject<AppSettings>(SettingsFile);
+            } catch(JsonException ex)
+            {
+                MessageBox.Show(ex.Message, "Error parsing JSON", MessageBoxButton.OK, MessageBoxImage.Error);
+                Environment.Exit(22);
+            }
+            
 
             // Setup WebService
-            WebService = new ConfigMgrWebService( Settings.WebServiceURI );
+            WebService = new ConfigMgrWebService(Settings.WebServiceURI);
 
             // Universal Code (Both PE and Windows)
-            if(Development) {
-                MessageBox.Show( "Development environment selected, will not work in production." );
-            } else {
-                Type EnvironmentType = Type.GetTypeFromProgID( "Microsoft.SMS.TSEnvironment" );
-                dynamic TSEnvironment = Activator.CreateInstance( EnvironmentType );
+            if (Development)
+            {
+                MessageBox.Show("Development environment selected, will not work in production.");
+            }
+            else
+            {
+                Type EnvironmentType = Type.GetTypeFromProgID("Microsoft.SMS.TSEnvironment");
+                dynamic TSEnvironment = Activator.CreateInstance(EnvironmentType);
 
-                if(TSEnvironment.Value["_SMSTSMachineName"] != null) {
+                if (TSEnvironment.Value["_SMSTSMachineName"] != null)
+                {
                     TextBoxComputerName.Text = TSEnvironment.Value["_SMSTSMachineName"];
                 }
             }
@@ -85,138 +106,189 @@ namespace UMN_OSDFrontEnd {
             // Use logo file
             BitmapImage OverlayImage = new BitmapImage();
             OverlayImage.BeginInit();
-            OverlayImage.UriSource = new Uri( Path.Combine( AppDomain.CurrentDomain.BaseDirectory.ToString(), Settings.LogoSource ) );
+            OverlayImage.UriSource = new Uri(Path.Combine(AppDomain.CurrentDomain.BaseDirectory.ToString(), Settings.LogoSource));
             OverlayImage.EndInit();
             OverlayLogo.Width = Settings.LogoWidth;
             OverlayLogo.Height = Settings.LogoHeight;
             OverlayLogo.Source = OverlayImage;
 
             // Setup all the tabs
-            foreach( AppSettingsTab Tab in Settings.Tabs ) {
+            foreach (Tab tab in Settings.Tabs)
+            {
                 // Handle ComputerName Tab Settings
-                if( Tab.TabName == "TabComputerName" ) {
-                    if( !Tab.Enabled ) {
-                        TabControlMainWindow.Items.Remove( TabComputerName );
-                    } else {
-                        if( !Tab.RuleGreaterLessThanEnabled ) {
-                            GridComputerNameRules.Children.Remove( LabelRuleGreaterThan );
-                            GridComputerNameRules.Children.Remove( LabelRuleGreaterThanStatus );
-                            GridComputerNameRules.Children.Remove( LabelRuleLessThan );
-                            GridComputerNameRules.Children.Remove( LabelRuleLessThanStatus );
+                if (tab.TabName == "TabComputerName")
+                {
+                    if (!tab.Enabled)
+                    {
+                        TabControlMainWindow.Items.Remove(TabComputerName);
+                    }
+                    else
+                    {
+                        if (!tab.RuleGreaterLessThanEnabled)
+                        {
+                            GridComputerNameRules.Children.Remove(LabelRuleGreaterThan);
+                            GridComputerNameRules.Children.Remove(LabelRuleGreaterThanStatus);
+                            GridComputerNameRules.Children.Remove(LabelRuleLessThan);
+                            GridComputerNameRules.Children.Remove(LabelRuleLessThanStatus);
                             ButtonComputerNameNext.IsEnabled = true;
-                        } else {
-                            LabelRuleGreaterThan.Content = "REQ - Length >= " + Tab.RuleGreaterThan + ":";
-                            LabelRuleLessThan.Content = "REQ - Length <= " + Tab.RuleLessThan + ":";
-                            ComputerNameGreaterThan = Tab.RuleGreaterThan;
-                            ComputerNameLessThan = Tab.RuleLessThan;
+                        }
+                        else
+                        {
+                            LabelRuleGreaterThan.Content = "REQ - Length >= " + tab.RuleGreaterThan + ":";
+                            LabelRuleLessThan.Content = "REQ - Length <= " + tab.RuleLessThan + ":";
+                            ComputerNameGreaterThan = tab.RuleGreaterThan;
+                            ComputerNameLessThan = tab.RuleLessThan;
                         }
 
-                        if( !Tab.RuleStartsWithEnabled ) {
-                            GridComputerNameRules.Children.Remove( LabelRuleStartsWith );
-                            GridComputerNameRules.Children.Remove( LabelRuleStartsWithStatus );
-                        } else {
-                            LabelRuleStartsWith.Content = "OPT - Starts With " + Tab.RuleStartsWith + ":";
-                            ComputerNameStartsWith = Tab.RuleStartsWith;
+                        if (!tab.RuleStartsWithEnabled)
+                        {
+                            GridComputerNameRules.Children.Remove(LabelRuleStartsWith);
+                            GridComputerNameRules.Children.Remove(LabelRuleStartsWithStatus);
+                        }
+                        else
+                        {
+                            LabelRuleStartsWith.Content = "REQ - Starts With " + tab.RuleStartsWith + ":";
+                            ComputerNameStartsWith = tab.RuleStartsWith;
                         }
 
-                        if( !Tab.RuleEndsWithEnabled ) {
-                            GridComputerNameRules.Children.Remove( LabelRuleEndsWith );
-                            GridComputerNameRules.Children.Remove( LabelRuleEndsWithStatus );
-                        } else {
-                            LabelRuleEndsWith.Content = "OPT - Ends With " + Tab.RuleEndsWith + ":";
-                            ComputerNameEndsWith = Tab.RuleEndsWith;
+                        if (!tab.RuleEndsWithEnabled)
+                        {
+                            GridComputerNameRules.Children.Remove(LabelRuleEndsWith);
+                            GridComputerNameRules.Children.Remove(LabelRuleEndsWithStatus);
+                        }
+                        else
+                        {
+                            LabelRuleEndsWith.Content = "REQ - Ends With " + tab.RuleEndsWith + ":";
+                            ComputerNameEndsWith = tab.RuleEndsWith;
                         }
                     }
                 }
 
-                if(Tab.TabName == "TabComputerBind") {
-                    if(!Tab.Enabled) {
-                        TabControlMainWindow.Items.Remove( TabComputerBind );
-                    } else {
-                        foreach(AppSettingsBindLocations BindLocation in Tab.BindLocations) {
-                            TreeViewItem RootOU = new TreeViewItem {
+                if (tab.TabName == "TabComputerBind")
+                {
+                    if (!tab.Enabled)
+                    {
+                        TabControlMainWindow.Items.Remove(TabComputerBind);
+                    }
+                    else
+                    {
+                        foreach (BindLocations BindLocation in tab.BindLocations)
+                        {
+                            TreeViewItem RootOU = new TreeViewItem
+                            {
                                 Header = BindLocation.RootName,
                                 IsExpanded = false,
                                 Focusable = false
                             };
 
-                            TreeViewComputerBind.Items.Add( RootOU );
+                            TreeViewComputerBind.Items.Add(RootOU);
 
-                            try {
-                                ADOrganizationalUnit[] organizationalUnits = WebService.GetADOrganizationalUnits( Settings.WebServiceKey, BindLocation.OU );
-                                foreach(ADOrganizationalUnit ou in organizationalUnits) {
-                                    TreeViewItem subTreeItem = new TreeViewItem {
+                            try
+                            {
+                                ADOrganizationalUnit[] organizationalUnits = WebService.GetADOrganizationalUnits(Settings.WebServiceKey, BindLocation.OU);
+                                foreach (ADOrganizationalUnit ou in organizationalUnits)
+                                {
+                                    TreeViewItem subTreeItem = new TreeViewItem
+                                    {
                                         Header = ou.Name,
                                         IsExpanded = false,
                                         Tag = ou.DistinguishedName
                                     };
 
-                                    RootOU.Items.Add( subTreeItem );
+                                    RootOU.Items.Add(subTreeItem);
 
-                                    if(ou.HasChildren) {
+                                    if (ou.HasChildren)
+                                    {
                                         subTreeItem.Focusable = false;
-                                        AddChildADNodes( ou, subTreeItem );
+                                        AddChildADNodes(ou, subTreeItem);
                                     }
                                 }
-                            } catch {
-                                MessageBox.Show( "Error on AD entry: " + BindLocation.OU );
+                            }
+                            catch
+                            {
+                                MessageBox.Show("Error on AD entry: " + BindLocation.OU);
                             }
                         }
                     }
                 }
 
                 // Handle Pre Flight Checks Tab Settings
-                if( Tab.TabName == "TabPreFlight" ) {
-                    if( !Tab.Enabled ) {
-                        TabControlMainWindow.Items.Remove( TabPreFlight );
-                    } else {
-                        foreach( AppSettingsPreFlight PreFlightCheck in Tab.PreFlightChecks ) {
+                if (tab.TabName == "TabPreFlight")
+                {
+                    if (!tab.Enabled)
+                    {
+                        TabControlMainWindow.Items.Remove(TabPreFlight);
+                    }
+                    else
+                    {
+                        foreach (PreFlightCheck preFlightCheck in tab.PreFlightChecks)
+                        {
                             bool CheckPass;
                             PreFlightCheckers preFlightCheckers = new PreFlightCheckers();
 
-                            RowDefinition newRow = new RowDefinition();
-                            newRow.Height = GridLength.Auto;
-                            GridPreFlightChecks.RowDefinitions.Add( newRow );
+                            RowDefinition newRow = new RowDefinition
+                            {
+                                Height = GridLength.Auto
+                            };
+                            GridPreFlightChecks.RowDefinitions.Add(newRow);
 
-                            Label newLabelDescription = new Label();
-                            newLabelDescription.Content = PreFlightCheck.CheckDescription;
-                            GridPreFlightChecks.Children.Add( newLabelDescription );
-                            Grid.SetRow( newLabelDescription, GridPreFlightChecks.RowDefinitions.Count - 1 );
-                            Grid.SetColumn( newLabelDescription, 0 );
+                            Label newLabelDescription = new Label
+                            {
+                                Content = preFlightCheck.CheckDescription
+                            };
+                            GridPreFlightChecks.Children.Add(newLabelDescription);
+                            Grid.SetRow(newLabelDescription, GridPreFlightChecks.RowDefinitions.Count - 1);
+                            Grid.SetColumn(newLabelDescription, 0);
 
-                            switch( PreFlightCheck.CheckType ) {
+                            switch (preFlightCheck.CheckType)
+                            {
                                 case "offlineFilesDetected":
-                                    if( PreFlightCheck.CheckPassState == preFlightCheckers.OfflineFilesDetected() ) {
+                                    if (preFlightCheck.CheckPassState == preFlightCheckers.OfflineFilesDetected())
+                                    {
                                         CheckPass = true;
-                                    } else {
+                                    }
+                                    else
+                                    {
                                         CheckPass = false;
                                     }
                                     break;
                                 case "physicalDiskCount":
-                                    if( preFlightCheckers.PhysicalDiskCount( PreFlightCheck.DiskCheckLimit ) ) {
+                                    if (preFlightCheckers.PhysicalDiskCount(preFlightCheck.DiskCheckLimit))
+                                    {
                                         CheckPass = true;
-                                    } else {
+                                    }
+                                    else
+                                    {
                                         CheckPass = false;
                                     }
                                     break;
                                 case "ethernetConnected":
-                                    if( preFlightCheckers.EthernetNetworkConnectionDetected() ) {
+                                    if (preFlightCheckers.EthernetNetworkConnectionDetected())
+                                    {
                                         CheckPass = true;
-                                    } else {
+                                    }
+                                    else
+                                    {
                                         CheckPass = false;
                                     }
                                     break;
                                 case "networkConnectivityCheck":
-                                    if( preFlightCheckers.TestNetworkConnectivity( PreFlightCheck.NetworkAddress ) ) {
+                                    if (preFlightCheckers.TestNetworkConnectivity(preFlightCheck.NetworkAddress))
+                                    {
                                         CheckPass = true;
-                                    } else {
+                                    }
+                                    else
+                                    {
                                         CheckPass = false;
                                     }
                                     break;
                                 case "64bitOS":
-                                    if( Environment.Is64BitOperatingSystem ) {
+                                    if (Environment.Is64BitOperatingSystem)
+                                    {
                                         CheckPass = true;
-                                    } else {
+                                    }
+                                    else
+                                    {
                                         CheckPass = false;
                                     }
                                     break;
@@ -225,102 +297,142 @@ namespace UMN_OSDFrontEnd {
                                     break;
                             }
 
-                            if( PreFlightCheck.Required && !CheckPass ) {
+                            if (preFlightCheck.Required && !CheckPass)
+                            {
                                 PreFlightPass = false;
                             }
 
                             Label newLabelStatus = new Label();
 
-                            if( CheckPass ) {
+                            if (CheckPass)
+                            {
                                 newLabelStatus.Content = "Pass";
                                 newLabelStatus.Foreground = (Brush)Application.Current.Resources["ValidItemBrush"];
-                            } else {
+                            }
+                            else
+                            {
                                 newLabelStatus.Content = "Fail";
                                 newLabelStatus.Foreground = (Brush)Application.Current.Resources["InvalidItemBrush"];
                             }
 
-                            GridPreFlightChecks.Children.Add( newLabelStatus );
-                            Grid.SetRow( newLabelStatus, GridPreFlightChecks.RowDefinitions.Count - 1 );
-                            Grid.SetColumn( newLabelStatus, 1 );
+                            GridPreFlightChecks.Children.Add(newLabelStatus);
+                            Grid.SetRow(newLabelStatus, GridPreFlightChecks.RowDefinitions.Count - 1);
+                            Grid.SetColumn(newLabelStatus, 1);
                         }
                     }
                 }
-                if(Tab.TabName == "TabUserProfiles") {
-                    if(!Tab.Enabled) {
-                        TabControlMainWindow.Items.Remove( TabUserProfiles );
-                    } else {
-                        SelectQuery Win32UserProfile = new SelectQuery( "SELECT * FROM Win32_UserProfile WHERE Loaded != True" );
-                        ManagementObjectSearcher Searcher = new ManagementObjectSearcher( Win32UserProfile );
+
+                if (tab.TabName == "TabUserProfiles")
+                {
+                    if (!tab.Enabled)
+                    {
+                        TabControlMainWindow.Items.Remove(TabUserProfiles);
+                    }
+                    else
+                    {
+                        SelectQuery Win32UserProfile = new SelectQuery("SELECT * FROM Win32_UserProfile WHERE Loaded != True");
+                        ManagementObjectSearcher Searcher = new ManagementObjectSearcher(Win32UserProfile);
 
                         SecurityIdentifier CurrentUser = null;
-                        try {
+                        try
+                        {
                             CurrentUser = WindowsIdentity.GetCurrent().User;
-                        } catch {
-                            MessageBox.Show( "Error getting current user." );
                         }
-                        
-                        foreach(ManagementObject Profile in Searcher.Get()) {
-                            try {
-                                string UserProfileName = new SecurityIdentifier( Profile["SID"].ToString() ).Translate( typeof( NTAccount ) ).ToString();
+                        catch
+                        {
+                            MessageBox.Show("Error getting current user.");
+                        }
+
+                        foreach (ManagementObject Profile in Searcher.Get())
+                        {
+                            try
+                            {
+                                string UserProfileName = new SecurityIdentifier(Profile["SID"].ToString()).Translate(typeof(NTAccount)).ToString();
                                 string UserProfileSid = Profile["SID"].ToString();
 
-                                if( CurrentUser.Value != UserProfileSid.ToUpper() ) {
-                                    if( Tab.DomainUsersOnly ) {
-                                        if( UserProfileName.StartsWith( Tab.UserDomainPrefix ) ) {
-                                            ListBoxUserProfiles.Items.Add( UserProfileName );
+                                if (CurrentUser.Value != UserProfileSid.ToUpper())
+                                {
+                                    if (tab.DomainUsersOnly)
+                                    {
+                                        if (UserProfileName.StartsWith(tab.UserDomainPrefix))
+                                        {
+                                            ListBoxUserProfiles.Items.Add(UserProfileName);
                                         }
-                                    } else {
-                                        ListBoxUserProfiles.Items.Add( UserProfileName );
+                                    }
+                                    else
+                                    {
+                                        ListBoxUserProfiles.Items.Add(UserProfileName);
                                     }
                                 }
-                            } catch(IdentityNotMappedException ) {
+                            }
+                            catch (IdentityNotMappedException)
+                            {
                                 string userProfileName = Profile["LocalPath"].ToString();
                                 string userProfileSid = Profile["SID"].ToString();
-                                ListBoxUserProfiles.Items.Add( userProfileName );
+                                ListBoxUserProfiles.Items.Add(userProfileName);
                             }
                         }
                     }
                 }
 
-                if(Tab.TabName == "TabBackupOptions") {
-                    if(!Tab.Enabled) {
-                        TabControlMainWindow.Items.Remove( TabBackupOptions );
+                if (tab.TabName == "TabApplications")
+                {
+                    if (!tab.Enabled)
+                    {
+                        TabControlMainWindow.Items.Remove(TabApplications);
                     }
-                }
-
-                if(Tab.TabName == "TabApplications") {
-                    if(!Tab.Enabled) {
-                        TabControlMainWindow.Items.Remove( TabApplications );
-                    } else {
-                        foreach(AppSettingsSoftwareSection SoftwareSection in Settings.SoftwareSections) {
-                            TreeViewItem SectionHeader = new TreeViewItem {
-                                Header = SoftwareSection.SoftwareSection,
+                    else
+                    {
+                        foreach (SoftwareSection SoftwareSection in Settings.SoftwareSections)
+                        {
+                            TreeViewItem SectionHeader = new TreeViewItem
+                            {
+                                Header = SoftwareSection.SoftwareSectionName,
                                 IsExpanded = true
                             };
 
-                            foreach(AppSettingsSoftwareSubCategory SoftwareCategory in SoftwareSection.SubCategories) {
-                                TreeViewItem CategoryHeader = new TreeViewItem {
+                            foreach (SoftwareSubCategory SoftwareCategory in SoftwareSection.SubCategories)
+                            {
+                                TreeViewItem CategoryHeader = new TreeViewItem
+                                {
                                     Header = SoftwareCategory.CategoryName,
                                     IsExpanded = true
                                 };
-                                
-                                CMApplication[] CategoryApps = WebService.GetCMApplicationByCategory( Settings.WebServiceKey, SoftwareCategory.CategorySCCM );
 
-                                foreach(CMApplication Application in CategoryApps) {
-                                    TreeViewItem App = new TreeViewItem {
-                                        Header = new CheckBox {
+                                CMApplication[] CategoryApps = WebService.GetCMApplicationByCategory(Settings.WebServiceKey, SoftwareCategory.CategorySCCM);
+
+                                foreach (CMApplication Application in CategoryApps)
+                                {
+                                    TreeViewItem App = new TreeViewItem
+                                    {
+                                        Header = new CheckBox
+                                        {
                                             Content = Application.ApplicationName
                                         }
                                     };
 
-                                    CategoryHeader.Items.Add( App );
+                                    CategoryHeader.Items.Add(App);
                                 }
 
-                                SectionHeader.Items.Add( CategoryHeader );
+                                SectionHeader.Items.Add(CategoryHeader);
                             }
 
-                            TreeViewApplications.Items.Add( SectionHeader );
+                            TreeViewApplications.Items.Add(SectionHeader);
                         }
+                    }
+                }
+
+                if (tab.TabType == "CustomTab")
+                {
+                    if (tab.Enabled)
+                    {
+                        FrontEndTab tabItem = new FrontEndTab(tab, Development);
+                        tabItem.NextButton.Click += NextButtonHandler;
+
+                        tabItem.ProcessTabLayout(tab.TabLayout);
+
+                        TabControlMainWindow.Items.Insert(TabControlMainWindow.Items.IndexOf(TabFinish), tabItem);
+                        CustomTabs.Add(tabItem);
                     }
                 }
             }
@@ -331,21 +443,25 @@ namespace UMN_OSDFrontEnd {
         /// </summary>
         /// <param name="adOU"></param>
         /// <param name="tree"></param>
-        private void AddChildADNodes(ADOrganizationalUnit adOU, TreeViewItem tree) {
-            ADOrganizationalUnit[] organizationalUnits = WebService.GetADOrganizationalUnits( Settings.WebServiceKey, adOU.DistinguishedName.Replace( "LDAP://", "" ) );
+        private void AddChildADNodes(ADOrganizationalUnit adOU, TreeViewItem tree)
+        {
+            ADOrganizationalUnit[] organizationalUnits = WebService.GetADOrganizationalUnits(Settings.WebServiceKey, adOU.DistinguishedName.Replace("LDAP://", ""));
 
-            foreach(ADOrganizationalUnit ou in organizationalUnits) {
-                TreeViewItem newTreeItem = new TreeViewItem {
+            foreach (ADOrganizationalUnit ou in organizationalUnits)
+            {
+                TreeViewItem newTreeItem = new TreeViewItem
+                {
                     Header = ou.Name,
                     IsExpanded = false,
                     Tag = ou.DistinguishedName
                 };
 
-                tree.Items.Add( newTreeItem );
+                tree.Items.Add(newTreeItem);
 
-                if(ou.HasChildren) {
+                if (ou.HasChildren)
+                {
                     newTreeItem.Focusable = false;
-                    AddChildADNodes( ou, newTreeItem );
+                    AddChildADNodes(ou, newTreeItem);
                 }
             }
         }
@@ -355,9 +471,10 @@ namespace UMN_OSDFrontEnd {
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void MetroWindow_ContentRendered( object sender, EventArgs e ) {
+        private void MetroWindow_ContentRendered(object sender, EventArgs e)
+        {
             // Update computer name text box if it's been filled in (needs to be here to work properly).
-            TextBoxComputerName_TextChanged( sender, null );
+            TextBoxComputerName_TextChanged(sender, null);
         }
 
         /// <summary>
@@ -365,9 +482,11 @@ namespace UMN_OSDFrontEnd {
         /// </summary>
         /// <param name="sender">Contains the object of the control or object that generated the event.</param>
         /// <param name="e">Contains all the event data.</param>
-        private void MetroWindow_Closing( object sender, System.ComponentModel.CancelEventArgs e ) {
+        private void MetroWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
             // If the form hasn't been fully filled out, exit not successful for task sequence error handling.
-            if( !FormEntryComplete ) {
+            if (!FormEntryComplete)
+            {
                 Environment.ExitCode = 22;
             }
         }
@@ -377,20 +496,24 @@ namespace UMN_OSDFrontEnd {
         /// </summary>
         /// <param name="sender">Contains the object of the control or object that generated the event.</param>
         /// <param name="e">Contains all the event data.</param>
-        private void NextButtonHandler( object sender, RoutedEventArgs e ) {
+        private void NextButtonHandler(object sender, RoutedEventArgs e)
+        {
             TabItem CurrentTab = TabControlMainWindow.Items[TabControlMainWindow.SelectedIndex] as TabItem;
             bool NextTab = true;
 
-            if(CurrentTab.Name == "TabPreFlight") {
-                if(!PreFlightPass) {
-                    MessageBox.Show( "Required pre flight checks not passing." );
+            if (CurrentTab.Name == "TabPreFlight")
+            {
+                if (!PreFlightPass)
+                {
+                    MessageBox.Show("Required pre flight checks not passing.");
                     NextTab = false;
                 }
             }
 
-            if(NextTab) {
+            if (NextTab)
+            {
                 TabControlMainWindow.SelectedIndex++;
-                ( TabControlMainWindow.Items[TabControlMainWindow.SelectedIndex] as TabItem ).IsEnabled = true;
+                (TabControlMainWindow.Items[TabControlMainWindow.SelectedIndex] as TabItem).IsEnabled = true;
             }
         }
 
@@ -399,63 +522,124 @@ namespace UMN_OSDFrontEnd {
         /// </summary>
         /// <param name="sender">Contains the object of the control or object that generated the event.</param>
         /// <param name="e">Contains all the event data.</param>
-        private void CompleteButtonHandler( object sender, RoutedEventArgs e ) {
-            if(!Development) {
-                Type EnvironmentType = Type.GetTypeFromProgID( "Microsoft.SMS.TSEnvironment" );
-                dynamic TSEnvironment = Activator.CreateInstance( EnvironmentType );
+        private void CompleteButtonHandler(object sender, RoutedEventArgs e)
+        {
+            if (!Development)
+            {
+                Type environmentType = Type.GetTypeFromProgID("Microsoft.SMS.TSEnvironment");
+                dynamic tsEnvironment = Activator.CreateInstance(environmentType);
 
-                foreach( AppSettingsTab Tab in Settings.Tabs ) {
-                    if(Tab.TabName == "TabComputerName" && Tab.Enabled) {
+                foreach (Tab tab in Settings.Tabs)
+                {
+                    if (tab.TabName == "TabComputerName" && tab.Enabled)
+                    {
                         // Here is where we set the computer name based on text input and if that tab is enabled
-                        TSEnvironment.Value["OSDComputerName"] = TextBoxComputerName.Text;
+                        tsEnvironment.Value["OSDComputerName"] = TextBoxComputerName.Text;
                     }
 
-                    if(Tab.TabName == "TabComputerBind" && Tab.Enabled) {
+                    if (tab.TabName == "TabComputerBind" && tab.Enabled)
+                    {
                         // Set computer bind location
-                        if( (TreeViewItem)TreeViewComputerBind.SelectedItem != null ) {
-                            TSEnvironment.Value["OSDOULocation"] = ( (TreeViewItem)TreeViewComputerBind.SelectedItem ).Tag.ToString();
+                        if ((TreeViewItem)TreeViewComputerBind.SelectedItem != null)
+                        {
+                            tsEnvironment.Value["OSDOULocation"] = ((TreeViewItem)TreeViewComputerBind.SelectedItem).Tag.ToString();
                         }
                     }
 
-                    if(Tab.TabName == "TabBackupOptions" && Tab.Enabled) {
-                        // Here is where we enable WIM backups if it's checked and the tab is enabled
-                        if(WIMBackup.IsChecked.Value) {
-                            TSEnvironment.Value["OSDWIMBackup"] = "True";
-                        } else {
-                            TSEnvironment.Value["OSDWIMBackup"] = "False";
-                        }
-
-                        // Here is where we enable USMT backups if it's checked and the tab is enabled
-                        if(USMTBackup.IsChecked.Value) {
-                            TSEnvironment.Value["OSDUSMTBackup"] = "True";
-                        } else {
-                            TSEnvironment.Value["OSDUSMTBackup"] = "False";
-                        }
+                    if (tab.TabName == "TabUserProfiles" && tab.Enabled)
+                    {
+                        DeleteUserProfiles(ProfilesForDeletion);
                     }
 
-                    if(Tab.TabName == "TabUserProfiles" && Tab.Enabled) {
-                        DeleteUserProfiles( ProfilesForDeletion );
-                    }
-
-                    if(Tab.TabName == "TabApplications" && Tab.Enabled) {
-                        List<string> AppsToInstall = FindCheckedNodes( TreeViewApplications.Items );
+                    if (tab.TabName == "TabApplications" && tab.Enabled)
+                    {
+                        List<string> AppsToInstall = FindCheckedNodes(TreeViewApplications.Items);
                         int counter = 1;
-                        foreach(string app in AppsToInstall) {
-                            string appCount = "APP" + counter.ToString( "D2" );
-                            TSEnvironment.Value[appCount] = app;
+                        foreach (string app in AppsToInstall)
+                        {
+                            string appCount = "APP" + counter.ToString("D2");
+                            tsEnvironment.Value[appCount] = app;
                             counter++;
                         }
                     }
                 }
-            } else {
-                foreach(AppSettingsTab Tab in Settings.Tabs) {
-                    if(Tab.TabName == "TabUserProfiles" && Tab.Enabled) {
-                        DeleteUserProfiles( ProfilesForDeletion );
+
+                foreach (FrontEndTab frontEndTab in CustomTabs)
+                {
+                    List<string> checkedCheckBoxes = frontEndTab.GetCheckedBoxesTSVariables();
+                    List<string> uncheckedCheckBoxes = frontEndTab.GetUncheckedBoxesTSVariables();
+                    Dictionary<string, string> comboBoxTSVariables = frontEndTab.GetDropDownValues();
+
+                    if (checkedCheckBoxes != null)
+                    {
+                        foreach (string checkBoxTSVariable in checkedCheckBoxes)
+                        {
+                            tsEnvironment.Value[checkBoxTSVariable] = "true";
+                        }
                     }
 
-                    if(Tab.TabName == "TabComputerBind" && Tab.Enabled) {
-                        if((TreeViewItem)TreeViewComputerBind.SelectedItem != null) {
-                            MessageBox.Show( ( (TreeViewItem)TreeViewComputerBind.SelectedItem ).Tag.ToString() );
+                    if (uncheckedCheckBoxes != null)
+                    {
+                        foreach (string checkBoxTSVariable in uncheckedCheckBoxes)
+                        {
+                            tsEnvironment.Value[checkBoxTSVariable] = "false";
+                        }
+                    }
+
+                    if (comboBoxTSVariables != null)
+                    {
+                        foreach (KeyValuePair<string, string> comboBoxSelection in comboBoxTSVariables)
+                        {
+                            tsEnvironment.Value[comboBoxSelection.Key] = comboBoxSelection.Value;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (Tab tab in Settings.Tabs)
+                {
+                    if (tab.TabName == "TabUserProfiles" && tab.Enabled)
+                    {
+                        DeleteUserProfiles(ProfilesForDeletion);
+                    }
+
+                    if (tab.TabName == "TabComputerBind" && tab.Enabled)
+                    {
+                        if ((TreeViewItem)TreeViewComputerBind.SelectedItem != null)
+                        {
+                            MessageBox.Show(((TreeViewItem)TreeViewComputerBind.SelectedItem).Tag.ToString());
+                        }
+                    }
+                }
+
+                foreach (FrontEndTab frontEndTab in CustomTabs)
+                {
+                    List<string> checkedCheckBoxes = frontEndTab.GetCheckedBoxesTSVariables();
+                    List<string> uncheckedCheckBoxes = frontEndTab.GetUncheckedBoxesTSVariables();
+                    Dictionary<string, string> comboBoxTSVariables = frontEndTab.GetDropDownValues();
+
+                    if (checkedCheckBoxes != null)
+                    {
+                        foreach (string checkBoxTSVariable in checkedCheckBoxes)
+                        {
+                            MessageBox.Show(checkBoxTSVariable + " set to true");
+                        }
+                    }
+
+                    if (uncheckedCheckBoxes != null)
+                    {
+                        foreach (string checkBoxTSVariable in uncheckedCheckBoxes)
+                        {
+                            MessageBox.Show(checkBoxTSVariable + " set to false");
+                        }
+                    }
+
+                    if (comboBoxTSVariables != null)
+                    {
+                        foreach (KeyValuePair<string, string> comboBoxSelection in comboBoxTSVariables)
+                        {
+                            MessageBox.Show(comboBoxSelection.Key + " set to: " + comboBoxSelection.Value);
                         }
                     }
                 }
@@ -471,62 +655,84 @@ namespace UMN_OSDFrontEnd {
         /// </summary>
         /// <param name="sender">Contains the object of the control or object that generated the event.</param>
         /// <param name="e">Contains all the event data.</param>
-        private void TextBoxComputerName_TextChanged( object sender, TextChangedEventArgs e ) {
+        private void TextBoxComputerName_TextChanged(object sender, TextChangedEventArgs e)
+        {
             bool ButtonEnableLength = true;
             bool ButtonEnableStartsWith = true;
             bool ButtonEnableEndsWith = true;
 
-            if( !string.IsNullOrEmpty(ComputerNameLessThan.ToString()) || !string.IsNullOrEmpty(ComputerNameGreaterThan.ToString()) ) {
-                if(TextBoxComputerName.Text.Length >= ComputerNameGreaterThan) {
+            if (!string.IsNullOrEmpty(ComputerNameLessThan.ToString()) || !string.IsNullOrEmpty(ComputerNameGreaterThan.ToString()))
+            {
+                if (TextBoxComputerName.Text.Length >= ComputerNameGreaterThan)
+                {
                     LabelRuleGreaterThanStatus.Foreground = (Brush)Application.Current.Resources["ValidItemBrush"];
                     LabelRuleGreaterThanStatus.Content = "True";
-                } else {
+                }
+                else
+                {
                     LabelRuleGreaterThanStatus.Foreground = (Brush)Application.Current.Resources["InvalidItemBrush"];
                     LabelRuleGreaterThanStatus.Content = "False";
                 }
 
-                if( TextBoxComputerName.Text.Length <= ComputerNameLessThan ) {
+                if (TextBoxComputerName.Text.Length <= ComputerNameLessThan)
+                {
                     LabelRuleLessThanStatus.Foreground = (Brush)Application.Current.Resources["ValidItemBrush"];
                     LabelRuleLessThanStatus.Content = "True";
-                } else {
+                }
+                else
+                {
                     LabelRuleLessThanStatus.Foreground = (Brush)Application.Current.Resources["InvalidItemBrush"];
                     LabelRuleLessThanStatus.Content = "False";
                 }
 
-                if( TextBoxComputerName.Text.Length >= ComputerNameGreaterThan && TextBoxComputerName.Text.Length <= ComputerNameLessThan ) {
+                if (TextBoxComputerName.Text.Length >= ComputerNameGreaterThan && TextBoxComputerName.Text.Length <= ComputerNameLessThan)
+                {
                     ButtonEnableLength = true;
-                } else {
+                }
+                else
+                {
                     ButtonEnableLength = false;
                 }
             }
 
-            if(ComputerNameStartsWith != null) {
-                if(TextBoxComputerName.Text.StartsWith(ComputerNameStartsWith)) {
+            if (ComputerNameStartsWith != null)
+            {
+                if (TextBoxComputerName.Text.StartsWith(ComputerNameStartsWith))
+                {
                     LabelRuleStartsWithStatus.Foreground = (Brush)Application.Current.Resources["ValidItemBrush"];
                     LabelRuleStartsWithStatus.Content = "True";
                     ButtonEnableStartsWith = true;
-                } else {
+                }
+                else
+                {
                     LabelRuleStartsWithStatus.Foreground = (Brush)Application.Current.Resources["InvalidItemBrush"];
                     LabelRuleStartsWithStatus.Content = "False";
                     ButtonEnableStartsWith = false;
                 }
             }
 
-            if(ComputerNameEndsWith != null) {
-                if(TextBoxComputerName.Text.EndsWith(ComputerNameEndsWith)) {
+            if (ComputerNameEndsWith != null)
+            {
+                if (TextBoxComputerName.Text.EndsWith(ComputerNameEndsWith))
+                {
                     LabelRuleEndsWithStatus.Foreground = (Brush)Application.Current.Resources["ValidItemBrush"];
                     LabelRuleEndsWithStatus.Content = "True";
                     ButtonEnableEndsWith = true;
-                } else {
+                }
+                else
+                {
                     LabelRuleEndsWithStatus.Foreground = (Brush)Application.Current.Resources["InvalidItemBrush"];
                     LabelRuleEndsWithStatus.Content = "False";
                     ButtonEnableEndsWith = false;
                 }
             }
 
-            if(ButtonEnableLength) {
+            if (ButtonEnableLength && ButtonEnableStartsWith && ButtonEnableEndsWith)
+            {
                 ButtonComputerNameNext.IsEnabled = true;
-            } else {
+            }
+            else
+            {
                 ButtonComputerNameNext.IsEnabled = false;
             }
         }
@@ -536,36 +742,45 @@ namespace UMN_OSDFrontEnd {
         /// </summary>
         /// <param name="sender">Contains the object of the control or object that generated the event.</param>
         /// <param name="e">Contains all the event data.</param>
-        private void SetProfileDeleteHandler( object sender, RoutedEventArgs e ) {
+        private void SetProfileDeleteHandler(object sender, RoutedEventArgs e)
+        {
             StringBuilder ProfileList = new StringBuilder();
-            foreach(string Profile in ListBoxUserProfiles.SelectedItems) {
-                ProfileList.AppendLine( " " + Profile );
-                ProfilesForDeletion.Add( Profile );
+            foreach (string Profile in ListBoxUserProfiles.SelectedItems)
+            {
+                ProfileList.AppendLine(" " + Profile);
+                ProfilesForDeletion.Add(Profile);
             }
 
-            ProfileDeleteConfirm = MessageBox.Show( "Are you sure you want to delete profiles:\n" + ProfileList, "Delete Confirmation", MessageBoxButton.YesNo );
+            ProfileDeleteConfirm = MessageBox.Show("Are you sure you want to delete profiles:\n" + ProfileList, "Delete Confirmation", MessageBoxButton.YesNo);
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="Users"></param>
-        private void DeleteUserProfiles(List<string> Users) {
-            SelectQuery Query = new SelectQuery( "SELECT * FROM Win32_UserProfile WHERE Loaded != True" );
-            ManagementObjectSearcher Searcher = new ManagementObjectSearcher( Query );
+        private void DeleteUserProfiles(List<string> Users)
+        {
+            SelectQuery Query = new SelectQuery("SELECT * FROM Win32_UserProfile WHERE Loaded != True");
+            ManagementObjectSearcher Searcher = new ManagementObjectSearcher(Query);
 
-            foreach(ManagementObject Profile in Searcher.Get()) {
+            foreach (ManagementObject Profile in Searcher.Get())
+            {
                 string UserProfileName = "";
 
-                try {
-                    UserProfileName = new SecurityIdentifier( Profile["SID"].ToString() ).Translate( typeof( NTAccount ) ).ToString();
-                } catch(IdentityNotMappedException) {
+                try
+                {
+                    UserProfileName = new SecurityIdentifier(Profile["SID"].ToString()).Translate(typeof(NTAccount)).ToString();
+                }
+                catch (IdentityNotMappedException)
+                {
                     UserProfileName = Profile["LocalPath"].ToString();
                 }
-                
-                if(Users.Contains(UserProfileName)) {
-                    if(ProfileDeleteConfirm == MessageBoxResult.Yes) {
-                        
+
+                if (Users.Contains(UserProfileName))
+                {
+                    if (ProfileDeleteConfirm == MessageBoxResult.Yes)
+                    {
+
                         Profile.Delete();
                     }
                 }
@@ -577,17 +792,24 @@ namespace UMN_OSDFrontEnd {
         /// </summary>
         /// <param name="itemCollection"></param>
         /// <returns></returns>
-        private List<string> FindCheckedNodes(ItemCollection itemCollection) {
+        private List<string> FindCheckedNodes(ItemCollection itemCollection)
+        {
             List<string> checkedNodes = new List<string>();
 
-            foreach(TreeViewItem item in itemCollection) {
-                if(item.HasItems) {
-                    checkedNodes.AddRange( FindCheckedNodes( item.Items ) );
-                } else {
-                    if(item.Header.GetType() == typeof(CheckBox)) {
+            foreach (TreeViewItem item in itemCollection)
+            {
+                if (item.HasItems)
+                {
+                    checkedNodes.AddRange(FindCheckedNodes(item.Items));
+                }
+                else
+                {
+                    if (item.Header.GetType() == typeof(CheckBox))
+                    {
                         CheckBox cb = (CheckBox)item.Header;
-                        if(cb.IsChecked == true) {
-                            checkedNodes.Add( cb.Content.ToString() );
+                        if (cb.IsChecked == true)
+                        {
+                            checkedNodes.Add(cb.Content.ToString());
                         }
                     }
                 }
@@ -601,13 +823,17 @@ namespace UMN_OSDFrontEnd {
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void DeselectUnwantedOUs( object sender, System.Windows.Input.MouseButtonEventArgs e ) {
-            if(TreeViewComputerBind.SelectedItem != null) {
-                MessageBoxResult messageBoxResult = MessageBox.Show( ( "Are you sure you want to bind to this location?\n\n" + ( (TreeViewItem)TreeViewComputerBind.SelectedItem ).Tag.ToString() ), "Confirm OU Bind Location", MessageBoxButton.YesNo );
+        private void DeselectUnwantedOUs(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (TreeViewComputerBind.SelectedItem != null)
+            {
+                MessageBoxResult messageBoxResult = MessageBox.Show(("Are you sure you want to bind to this location?\n\n" + ((TreeViewItem)TreeViewComputerBind.SelectedItem).Tag.ToString()), "Confirm OU Bind Location", MessageBoxButton.YesNo);
 
-                if( messageBoxResult == MessageBoxResult.No ) {
+                if (messageBoxResult == MessageBoxResult.No)
+                {
                     TreeViewItem item = TreeViewComputerBind.SelectedItem as TreeViewItem;
-                    if( item != null ) {
+                    if (item != null)
+                    {
                         TreeViewComputerBind.Focus();
                         item.IsSelected = false;
                     }
